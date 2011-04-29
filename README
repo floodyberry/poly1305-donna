@@ -50,5 +50,5 @@ MIT (http://www.opensource.org/licenses/mit-license.php)
 
 NAMESAKE
 
-I borrowed the idea for these from Adam Langley's http://github.com/agl/curve25519-donna), hence
+I borrowed the idea for these from Adam Langley's http://github.com/agl/curve25519-donna, hence
 the name.
