@@ -9,7 +9,7 @@ poly1305_donna_c64_unrolled_auth(unsigned char out[16], const unsigned char *m, 
 	uint64_t g0,g1,g2,g3,g4,c;
 	uint64_t s1,s2;
 	uint64_t j;
-	uint128_t d[3];
+	uint128_t d[3], mul;
 	unsigned char mp[16];
 
 	/* clamp key */
@@ -36,18 +36,18 @@ poly1305_donna_16bytes:
 
 	t0 = U8TO64_LE(m-16);
 	t1 = U8TO64_LE(m-8);
-	h0 += t0 & 0xfffffffffff; 
-	h1 += (uint64_t)((((uint128_t)t1 << 64) | t0) >> 44) & 0xfffffffffff; 
+	h0 += t0 & 0xfffffffffff;
+	h1 += shr128_pair(t1, t0, 44) & 0xfffffffffff; 
 	h2 += (t1 >> 24) | (1ull << 40);
 
 poly1305_donna_mul:
-	d[0] = ((uint128_t)h0 * r0) + ((uint128_t)h1 * s2) + ((uint128_t)h2 * s1);
-	d[1] = ((uint128_t)h0 * r1) + ((uint128_t)h1 * r0) + ((uint128_t)h2 * s2);
-	d[2] = ((uint128_t)h0 * r2) + ((uint128_t)h1 * r1) + ((uint128_t)h2 * r0);
+	mul64x64_128(mul, h0, r0) mul64x64_128(d[0], h1, s2) add128(d[0], mul) mul64x64_128(mul, h2, s1) add128(d[0], mul)
+	mul64x64_128(mul, h0, r1) mul64x64_128(d[1], h1, r0) add128(d[1], mul) mul64x64_128(mul, h2, s2) add128(d[1], mul)
+	mul64x64_128(mul, h0, r2) mul64x64_128(d[2], h1, r1) add128(d[2], mul) mul64x64_128(mul, h2, r0) add128(d[2], mul)
 
-	               h0 = (uint64_t)d[0] & 0xfffffffffff; c = (uint64_t)(d[0] >> 44);
-	d[1] +=     c; h1 = (uint64_t)d[1] & 0xfffffffffff; c = (uint64_t)(d[1] >> 44);
-	d[2] +=     c; h2 = (uint64_t)d[2] & 0x3ffffffffff; c = (uint64_t)(d[2] >> 42);
+	                   h0 = lo128(d[0]) & 0xfffffffffff; c = shr128(d[0], 44);	
+	add128_64(d[1], c) h1 = lo128(d[1]) & 0xfffffffffff; c = shr128(d[1], 44);
+	add128_64(d[2], c) h2 = lo128(d[2]) & 0x3ffffffffff; c = shr128(d[2], 42);
 	h0   += c * 5;  c = (h0 >> 44); h0 &= 0xfffffffffff;
 	h1   += c;
 
@@ -65,7 +65,7 @@ poly1305_donna_atmost15bytes:
 	t0 = U8TO64_LE(mp+0);
 	t1 = U8TO64_LE(mp+8);
 	h0 += t0 & 0xfffffffffff; 
-	h1 += (uint64_t)((((uint128_t)t1 << 64) | t0) >> 44) & 0xfffffffffff; 
+	h1 += shr128_pair(t1, t0, 44) & 0xfffffffffff;
 	h2 += (t1 >> 24);
 
 	goto poly1305_donna_mul;

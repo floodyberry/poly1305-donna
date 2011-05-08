@@ -9,33 +9,33 @@ poly1305_donna_c64_sum(uint64_t out[3], const uint64_t in[2]) {
 
 static DONNA_INLINE void
 poly1305_donna_c64_mul(uint64_t out[3], const uint64_t in[3]) {
-	uint64_t r0,r1,r2,s0,s1,s2,t1,t2,c;
-	uint128_t t[3];
+	uint64_t h0,h1,h2,r0,r1,r2,s1,s2,c;
+	uint128_t d[3], mul;
 
-	r0 = out[0];
-	r1 = out[1];
-	r2 = out[2];
+	h0 = out[0];
+	h1 = out[1];
+	h2 = out[2];
 
-	s0 = in[0];
-	s1 = in[1];
-	s2 = in[2];
+	r0 = in[0];
+	r1 = in[1];
+	r2 = in[2];
 
-	t1 = s1 * (5 << 2);
-	t2 = s2 * (5 << 2);
+	s1 = r1 * (5 << 2);
+	s2 = r2 * (5 << 2);
 
-	t[0] = ((uint128_t)r0 * s0) + ((uint128_t)r1 * t2) + ((uint128_t)r2 * t1);
-	t[1] = ((uint128_t)r0 * s1) + ((uint128_t)r1 * s0) + ((uint128_t)r2 * t2);
-	t[2] = ((uint128_t)r0 * s2) + ((uint128_t)r1 * s1) + ((uint128_t)r2 * s0);
+	mul64x64_128(mul, h0, r0) mul64x64_128(d[0], h1, s2) add128(d[0], mul) mul64x64_128(mul, h2, s1) add128(d[0], mul)
+	mul64x64_128(mul, h0, r1) mul64x64_128(d[1], h1, r0) add128(d[1], mul) mul64x64_128(mul, h2, s2) add128(d[1], mul)
+	mul64x64_128(mul, h0, r2) mul64x64_128(d[2], h1, r1) add128(d[2], mul) mul64x64_128(mul, h2, r0) add128(d[2], mul)
 
-	               r0 = (uint64_t)t[0] & 0xfffffffffff; c = (uint64_t)(t[0] >> 44);
-	t[1] +=     c; r1 = (uint64_t)t[1] & 0xfffffffffff; c = (uint64_t)(t[1] >> 44); 
-	t[2] +=     c; r2 = (uint64_t)t[2] & 0x3ffffffffff; c = (uint64_t)(t[2] >> 42);
-	r0   += c * 5;  c = (r0 >> 44); r0 &= 0xfffffffffff;
-	r1   += c;
+	                   h0 = lo128(d[0]) & 0xfffffffffff; c = shr128(d[0], 44);	
+	add128_64(d[1], c) h1 = lo128(d[1]) & 0xfffffffffff; c = shr128(d[1], 44);
+	add128_64(d[2], c) h2 = lo128(d[2]) & 0x3ffffffffff; c = shr128(d[2], 42);
+	h0   += c * 5;  c = (h0 >> 44); h0 &= 0xfffffffffff;
+	h1   += c;
 
-	out[0] = r0;
-	out[1] = r1;
-	out[2] = r2;
+	out[0] = h0;
+	out[1] = h1;
+	out[2] = h2;
 }
 
 static DONNA_INLINE void
@@ -46,7 +46,7 @@ poly1305_donna_c64_expand(uint64_t out[3], const unsigned char buf[16]) {
 	t1 = U8TO64_LE(buf+8);
 
 	out[0] = t0 & 0xfffffffffff; 
-	out[1] = (uint64_t)((((uint128_t)t1 << 64) | t0) >> 44) & 0xfffffffffff; 
+	out[1] = shr128_pair(t1, t0, 44) & 0xfffffffffff; 
 	out[2] = (t1 >> 24);
 }
 

@@ -32,7 +32,7 @@ const char *buildstrings[] = {
 int main(int argc, const char *argv[]) {
 	uint32_t limit, valid;
 	const char **build;
-	char cmd[512], out[64], expected[32];
+	char cmd[512], out[64];
 
 	FILE *f;
 
