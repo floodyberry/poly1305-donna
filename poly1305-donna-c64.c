@@ -23,9 +23,15 @@ poly1305_donna_c64_mul(uint64_t out[3], const uint64_t in[3]) {
 	s1 = r1 * (5 << 2);
 	s2 = r2 * (5 << 2);
 
-	mul64x64_128(mul, h0, r0) mul64x64_128(d[0], h1, s2) add128(d[0], mul) mul64x64_128(mul, h2, s1) add128(d[0], mul)
-	mul64x64_128(mul, h0, r1) mul64x64_128(d[1], h1, r0) add128(d[1], mul) mul64x64_128(mul, h2, s2) add128(d[1], mul)
-	mul64x64_128(mul, h0, r2) mul64x64_128(d[2], h1, r1) add128(d[2], mul) mul64x64_128(mul, h2, r0) add128(d[2], mul)
+#if defined(COMPILER_MSVC)
+	mul64x64_128(d[0], h0, r0) mul64x64_128(mul, h1, s2) add128(d[0], mul) mul64x64_128(mul, h2, s1) add128(d[0], mul)
+	mul64x64_128(d[1], h0, r1) mul64x64_128(mul, h1, r0) add128(d[1], mul) mul64x64_128(mul, h2, s2) add128(d[1], mul)
+	mul64x64_128(d[2], h0, r2) mul64x64_128(mul, h1, r1) add128(d[2], mul) mul64x64_128(mul, h2, r0) add128(d[2], mul)
+#else
+	d[0] = ((uint128_t)h0 * r0) + ((uint128_t)h1 * s2) + ((uint128_t)h2 * s1);
+	d[1] = ((uint128_t)h0 * r1) + ((uint128_t)h1 * r0) + ((uint128_t)h2 * s2);
+	d[2] = ((uint128_t)h0 * r2) + ((uint128_t)h1 * r1) + ((uint128_t)h2 * r0);
+#endif
 
 	                   h0 = lo128(d[0]) & 0xfffffffffff; c = shr128(d[0], 44);	
 	add128_64(d[1], c) h1 = lo128(d[1]) & 0xfffffffffff; c = shr128(d[1], 44);
