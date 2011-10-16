@@ -20,10 +20,8 @@ const char *buildstrings[] = {
 	"gcc test-poly1305.c poly1305-amd64.s -Dpoly1305_auth=poly1305_amd64_auth -O3 -o test-poly1305" build_suffix,
 #endif
 #if defined(CPU_64BITS)
-	"gcc test-poly1305.c poly1305-donna-c64.c -Dpoly1305_auth=poly1305_donna_c64_auth -O3 -o test-poly1305" build_suffix,
 	"gcc test-poly1305.c poly1305-donna-c64-unrolled.c -Dpoly1305_auth=poly1305_donna_c64_unrolled_auth -O3 -o test-poly1305" build_suffix,
 #endif
-	"gcc test-poly1305.c poly1305-donna.c -Dpoly1305_auth=poly1305_donna_auth -O3 -o test-poly1305" build_suffix,
 	"gcc test-poly1305.c poly1305-donna-unrolled.c -Dpoly1305_auth=poly1305_donna_unrolled_auth -O3 -o test-poly1305" build_suffix,
 	NULL
 };

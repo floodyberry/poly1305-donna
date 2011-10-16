@@ -6,10 +6,12 @@ poly1305_donna_unrolled_auth(unsigned char out[16], const unsigned char *m, size
 	uint32_t h0,h1,h2,h3,h4;
 	uint32_t r0,r1,r2,r3,r4;
 	uint32_t s1,s2,s3,s4;
-	uint32_t j;
+	uint32_t b, nb;
+	size_t j;
 	uint64_t t[5];
-	uint64_t f0,f1,f2,f3,f4;
-	uint64_t g0,g1,g2,g3,g4,c;
+	uint64_t f0,f1,f2,f3;
+	uint32_t g0,g1,g2,g3,g4;
+	uint64_t c;
 	unsigned char mp[16];
 
 	/* clamp key */
@@ -18,6 +20,7 @@ poly1305_donna_unrolled_auth(unsigned char out[16], const unsigned char *m, size
 	t2 = U8TO32_LE(key+8);
 	t3 = U8TO32_LE(key+12);
 
+	/* precompute multipliers */
 	r0 = t0 & 0x3ffffff; t0 >>= 26; t0 |= t1 << 6;
 	r1 = t0 & 0x3ffff03; t1 >>= 20; t1 |= t2 << 12;
 	r2 = t1 & 0x3ffc0ff; t2 >>= 14; t2 |= t3 << 18;
@@ -29,6 +32,7 @@ poly1305_donna_unrolled_auth(unsigned char out[16], const unsigned char *m, size
 	s3 = r3 * 5;
 	s4 = r4 * 5;
 
+	/* init state */
 	h0 = 0;
 	h1 = 0;
 	h2 = 0;
@@ -70,13 +74,11 @@ poly1305_donna_mul:
 	t[2] += c;      h2 = (uint32_t)t[2] & 0x3ffffff; c = (uint32_t)(t[2] >> 26);
 	t[3] += c;      h3 = (uint32_t)t[3] & 0x3ffffff; c = (uint32_t)(t[3] >> 26);
 	t[4] += c;      h4 = (uint32_t)t[4] & 0x3ffffff; c = (uint32_t)(t[4] >> 26);
-	h0 +=   c * 5; c = h0 >> 26; h0 = h0 & 0x3ffffff;
-	h1 +=   c;     c = h1 >> 26; h1 = h1 & 0x3ffffff;
-	h2 +=   c;
+	h0 += c * 5;
 
 	if (inlen >= 16) goto poly1305_donna_16bytes;
 
-	/* partial block */
+	/* final bytes */
 poly1305_donna_atmost15bytes:
 	if (!inlen) goto poly1305_donna_finish;
 
@@ -90,32 +92,40 @@ poly1305_donna_atmost15bytes:
 	t2 = U8TO32_LE(mp+8);
 	t3 = U8TO32_LE(mp+12);
 
-	h0 += t0 & 0x3ffffff; t0 >>= 26; t0 |= t1 << 6;
-	h1 += t0 & 0x3ffffff; t1 >>= 20; t1 |= t2 << 12;
-	h2 += t1 & 0x3ffffff; t2 >>= 14; t2 |= t3 << 18;
-	h3 += t2 & 0x3ffffff; t3 >>= 8;
-	h4 += t3;
-	
+	h0 += t0 & 0x3ffffff;
+	h1 += ((((uint64_t)t1 << 32) | t0) >> 26) & 0x3ffffff;
+	h2 += ((((uint64_t)t2 << 32) | t1) >> 20) & 0x3ffffff;
+	h3 += ((((uint64_t)t3 << 32) | t2) >> 14) & 0x3ffffff;
+	h4 += (t3 >> 8);
+
 	goto poly1305_donna_mul;
 
 poly1305_donna_finish:
-	f0 = (h0      ) | (h1 << 26);
-	f1 = (h1 >>  6) | (h2 << 20);
-	f2 = (h2 >> 12) | (h3 << 14);
-	f3 = (h3 >> 18) | (h4 <<  8);
-	f4 = (h4 >> 24);
+	             b = h0 >> 26; h0 = h0 & 0x3ffffff;
+	h1 +=     b; b = h1 >> 26; h1 = h1 & 0x3ffffff;
+	h2 +=     b; b = h2 >> 26; h2 = h2 & 0x3ffffff;
+	h3 +=     b; b = h3 >> 26; h3 = h3 & 0x3ffffff;
+	h4 +=     b; b = h4 >> 26; h4 = h4 & 0x3ffffff;
+	h0 += b * 5;
 
-	g0 = f0 + 5; c = g0 >> 32; g0 &= 0xffffffff;
-	g1 = f1 + c; c = g1 >> 32; g1 &= 0xffffffff;
-	g2 = f2 + c; c = g2 >> 32; g2 &= 0xffffffff;
-	g3 = f3 + c; c = g3 >> 32; g3 &= 0xffffffff;
-	g4 = f4 + c - 4;
+	g0 = h0 + 5; b = g0 >> 26; g0 &= 0x3ffffff;
+	g1 = h1 + b; b = g1 >> 26; g1 &= 0x3ffffff;
+	g2 = h2 + b; b = g2 >> 26; g2 &= 0x3ffffff;
+	g3 = h3 + b; b = g3 >> 26; g3 &= 0x3ffffff;
+	g4 = h4 + b - (1 << 26);
 
-	c = (uint64_t)((int64_t)g4 >> 63);
-	f0 &= c; g0 &= ~c; f0 |= g0; f0 += U8TO32_LE(&key[16]);
-	f1 &= c; g1 &= ~c; f1 |= g1; f1 += U8TO32_LE(&key[20]);
-	f2 &= c; g2 &= ~c; f2 |= g2; f2 += U8TO32_LE(&key[24]);
-	f3 &= c; g3 &= ~c; f3 |= g3; f3 += U8TO32_LE(&key[28]);
+	b = (g4 >> 31) - 1;
+	nb = ~b;
+	h0 = (h0 & nb) | (g0 & b);
+	h1 = (h1 & nb) | (g1 & b);
+	h2 = (h2 & nb) | (g2 & b);
+	h3 = (h3 & nb) | (g3 & b);
+	h4 = (h4 & nb) | (g4 & b);
+
+	f0 = ((h0      ) | (h1 << 26)) + (uint64_t)U8TO32_LE(&key[16]);
+	f1 = ((h1 >>  6) | (h2 << 20)) + (uint64_t)U8TO32_LE(&key[20]);
+	f2 = ((h2 >> 12) | (h3 << 14)) + (uint64_t)U8TO32_LE(&key[24]);
+	f3 = ((h3 >> 18) | (h4 <<  8)) + (uint64_t)U8TO32_LE(&key[28]);
 
 	U32TO8_LE(&out[ 0], f0); f1 += (f0 >> 32);
 	U32TO8_LE(&out[ 4], f1); f2 += (f1 >> 32);
