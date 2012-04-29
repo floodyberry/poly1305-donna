@@ -58,16 +58,11 @@ poly1305_donna_16bytes:
 
 
 poly1305_donna_mul:
-	t[0]  = mul32x32_64(h0,r0);
-	t[1]  = mul32x32_64(h0,r1) + mul32x32_64(h1,r0);
-	t[2]  = mul32x32_64(h0,r2) + mul32x32_64(h2,r0) + mul32x32_64(h1,r1);
-	t[3]  = mul32x32_64(h0,r3) + mul32x32_64(h3,r0) + mul32x32_64(h1,r2) + mul32x32_64(h2,r1);
-	t[4]  = mul32x32_64(h0,r4) + mul32x32_64(h4,r0) + mul32x32_64(h3,r1) + mul32x32_64(h1,r3) + mul32x32_64(h2,r2);
-
-	t[0] += mul32x32_64(h4,s1) + mul32x32_64(h1,s4) + mul32x32_64(h2,s3) + mul32x32_64(h3,s2);
-	t[1] += mul32x32_64(h4,s2) + mul32x32_64(h2,s4) + mul32x32_64(h3,s3);
-	t[2] += mul32x32_64(h4,s3) + mul32x32_64(h3,s4);
-	t[3] += mul32x32_64(h4,s4);
+	t[0]  = mul32x32_64(h0,r0) + mul32x32_64(h1,s4) + mul32x32_64(h2,s3) + mul32x32_64(h3,s2) + mul32x32_64(h4,s1);
+	t[1]  = mul32x32_64(h0,r1) + mul32x32_64(h1,r0) + mul32x32_64(h2,s4) + mul32x32_64(h3,s3) + mul32x32_64(h4,s2);
+	t[2]  = mul32x32_64(h0,r2) + mul32x32_64(h1,r1) + mul32x32_64(h2,r0) + mul32x32_64(h3,s4) + mul32x32_64(h4,s3);
+	t[3]  = mul32x32_64(h0,r3) + mul32x32_64(h1,r2) + mul32x32_64(h2,r1) + mul32x32_64(h3,r0) + mul32x32_64(h4,s4);
+	t[4]  = mul32x32_64(h0,r4) + mul32x32_64(h1,r3) + mul32x32_64(h2,r2) + mul32x32_64(h3,r1) + mul32x32_64(h4,r0);
 
 	                h0 = (uint32_t)t[0] & 0x3ffffff; c = (uint32_t)(t[0] >> 26);
 	t[1] += c;      h1 = (uint32_t)t[1] & 0x3ffffff; c = (uint32_t)(t[1] >> 26);
