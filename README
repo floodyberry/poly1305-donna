@@ -4,7 +4,8 @@ ABOUT
 
 See: http://cr.yp.to/mac.html and http://cr.yp.to/mac/poly1305-20050329.pdf
 
-These are portable, and in the case of the 64 bit version, fairly performant, versions of poly1305.
+These are portable, and in the case of the 64 bit & SSE2 versions, fairly performant, 
+versions of poly1305.
 
 
 BUILDING
@@ -13,11 +14,13 @@ extern void poly1305_auth(unsigned char mac[16], const unsigned char *m, size_t 
 char key[32]);
 
 To link to each version, use
-  * poly1305-donna-c64.c         : "-Dpoly1305_auth=poly1305_donna_c64_auth"
   * poly1305-donna-c64-unrolled.c: "-Dpoly1305_auth=poly1305_donna_c64_unrolled_auth"
-  * poly1305-donna.c             : "-Dpoly1305_auth=poly1305_donna_auth"
   * poly1305-donna-unrolled.c    : "-Dpoly1305_auth=poly1305_donna_unrolled_auth"
+  * poly1305-donna-x64-sse2.s    : "-Dpoly1305_auth=poly1305_auth_x64_sse2"
+  * poly1305-donna-x86-sse2.s    : "-Dpoly1305_auth=poly1305_auth_x86_sse2"
 
+The .c source for the SSE2 versions is for inspection only. Compilers are not guaranteed to generate
+decent code, so I included .s versions compiled with icc for the best performance.
 
 USAGE
 
@@ -39,13 +42,13 @@ through "openssl md5" to create a fingerprint for the test which can be checked 
 working versions. djb's poly1305-x86.s and poly1305-amd64.s are included to validate against.
 
 test-driver.c (gcc only, requires openssl to be installed) automates testing of all available 
-versions. The output for trials from 2^0 to 2^20 are included in validate-e5200-32bit.txt and 
-validate-e5200-64bit.txt.
+versions. The fingerprints for 2^0 to 2^24 trials are included in test-driver.c and are checked 
+against automatically.
 
 
 LICENSE
 
-MIT (http://www.opensource.org/licenses/mit-license.php)
+MIT (http://www.opensource.org/licenses/mit-license.php) or PUBLIC DOMAIN
 
 
 NAMESAKE
