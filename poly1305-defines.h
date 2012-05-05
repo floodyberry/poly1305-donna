@@ -40,11 +40,13 @@
 	typedef unsigned int uint32_t;
 	typedef unsigned __int64 uint64_t;
 	typedef signed __int64 int64_t;
+	#define MM16 __declspec(align(16))
 #else
 	#include <stdint.h>
 	#include <sys/param.h>
 	#undef inline
 	#define inline __attribute__((always_inline))
+	#define MM16 __attribute__((aligned(16)))
 #endif
 
 /* uint128_t */
