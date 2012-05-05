@@ -75,7 +75,7 @@ int main(int argc, const char *argv[]) {
 	for (build = build_list; build->type; build++) {
 		printf("%s%s", build->type, (build+1)->type ? ",":"");
 		if (specific_test)
-			specific_test_seen |= (strcmp(build->type, specific_test) != 0);
+			specific_test_seen |= (strcmp(build->type, specific_test) == 0);
 	}
 	printf("]\n\n");
 	
