@@ -35,9 +35,10 @@ poly1305_auth_x86_sse2(unsigned char out[16], const unsigned char *m, size_t inl
 	uint32_t r20,r21,r22,r23,r24;
 	uint32_t s1,s2,s3,s4;
 	uint32_t s21,s22,s23,s24;
-	uint32_t c, b, nb;
+	uint32_t b, nb;
 	size_t powers, p, i, blocksize;
 	uint64_t t[5];
+	uint64_t c;
 	uint64_t f0,f1,f2,f3;
 	uint32_t g0,g1,g2,g3,g4;
 	unsigned char mp[16];
@@ -296,12 +297,12 @@ poly1305_donna_mul:
 	t[3]  = mul32x32_64(h0,r3) + mul32x32_64(h1,r2) + mul32x32_64(h2,r1) + mul32x32_64(h3,r0) + mul32x32_64(h4,s4);
 	t[4]  = mul32x32_64(h0,r4) + mul32x32_64(h1,r3) + mul32x32_64(h2,r2) + mul32x32_64(h3,r1) + mul32x32_64(h4,r0);
 
-	                h0 = (uint32_t)t[0] & 0x3ffffff; c = (uint32_t)(t[0] >> 26);
-	t[1] += c;      h1 = (uint32_t)t[1] & 0x3ffffff; c = (uint32_t)(t[1] >> 26);
-	t[2] += c;      h2 = (uint32_t)t[2] & 0x3ffffff; c = (uint32_t)(t[2] >> 26);
-	t[3] += c;      h3 = (uint32_t)t[3] & 0x3ffffff; c = (uint32_t)(t[3] >> 26);
-	t[4] += c;      h4 = (uint32_t)t[4] & 0x3ffffff; c = (uint32_t)(t[4] >> 26);
-	h0 += (uint32_t)c * 5;
+	                h0 = (uint32_t)t[0] & 0x3ffffff; c =           (t[0] >> 26);
+	t[1] += c;      h1 = (uint32_t)t[1] & 0x3ffffff; b = (uint32_t)(t[1] >> 26);
+	t[2] += b;      h2 = (uint32_t)t[2] & 0x3ffffff; b = (uint32_t)(t[2] >> 26);
+	t[3] += b;      h3 = (uint32_t)t[3] & 0x3ffffff; b = (uint32_t)(t[3] >> 26);
+	t[4] += b;      h4 = (uint32_t)t[4] & 0x3ffffff; b = (uint32_t)(t[4] >> 26);
+	h0 += b * 5;
 
 	if (inlen >= 16) goto poly1305_donna_16bytes;
 

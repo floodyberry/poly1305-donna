@@ -64,12 +64,12 @@ poly1305_donna_mul:
 	t[3]  = mul32x32_64(h0,r3) + mul32x32_64(h1,r2) + mul32x32_64(h2,r1) + mul32x32_64(h3,r0) + mul32x32_64(h4,s4);
 	t[4]  = mul32x32_64(h0,r4) + mul32x32_64(h1,r3) + mul32x32_64(h2,r2) + mul32x32_64(h3,r1) + mul32x32_64(h4,r0);
 
-	                h0 = (uint32_t)t[0] & 0x3ffffff; c = (uint32_t)(t[0] >> 26);
-	t[1] += c;      h1 = (uint32_t)t[1] & 0x3ffffff; c = (uint32_t)(t[1] >> 26);
-	t[2] += c;      h2 = (uint32_t)t[2] & 0x3ffffff; c = (uint32_t)(t[2] >> 26);
-	t[3] += c;      h3 = (uint32_t)t[3] & 0x3ffffff; c = (uint32_t)(t[3] >> 26);
-	t[4] += c;      h4 = (uint32_t)t[4] & 0x3ffffff; c = (uint32_t)(t[4] >> 26);
-	h0 += c * 5;
+	                h0 = (uint32_t)t[0] & 0x3ffffff; c =           (t[0] >> 26);
+	t[1] += c;      h1 = (uint32_t)t[1] & 0x3ffffff; b = (uint32_t)(t[1] >> 26);
+	t[2] += b;      h2 = (uint32_t)t[2] & 0x3ffffff; b = (uint32_t)(t[2] >> 26);
+	t[3] += b;      h3 = (uint32_t)t[3] & 0x3ffffff; b = (uint32_t)(t[3] >> 26);
+	t[4] += b;      h4 = (uint32_t)t[4] & 0x3ffffff; b = (uint32_t)(t[4] >> 26);
+	h0 += b * 5;
 
 	if (inlen >= 16) goto poly1305_donna_16bytes;
 
