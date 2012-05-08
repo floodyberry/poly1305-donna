@@ -26,7 +26,7 @@ poly1305_auth_x86_sse2(unsigned char out[16], const unsigned char *m, size_t inl
 	} P[13], *power, *prev, *initial_power, *rsquared;
 	xmmi M0,M1,M2,M3,M4;
 	xmmi H0,H1,H2,H3,H4;
-	xmmi T0,T1,T2,T3,T4,T5,T6,T7,T8;
+	xmmi T0,T1,T2,T3,T4,T5,T6;
 	xmmi C1,C2;
 
 	uint32_t t0,t1,t2,t3;
@@ -267,11 +267,13 @@ poly1305_donna_combine:
 	H3 = _mm_add_epi64(T3, _mm_srli_si128(T3, 8));
 	H4 = _mm_add_epi64(T4, _mm_srli_si128(T4, 8));
 
-	h0 = _mm_cvtsi128_si32(H0);
-	h1 = _mm_cvtsi128_si32(H1);
-	h2 = _mm_cvtsi128_si32(H2);
-	h3 = _mm_cvtsi128_si32(H3);
-	h4 = _mm_cvtsi128_si32(H4);
+	/* must be reduced in case it goes straight to finish */
+	h0 = _mm_cvtsi128_si32(H0)    ; b = (h0 >> 26); h0 &= 0x3ffffff;
+	h1 = _mm_cvtsi128_si32(H1) + b; b = (h1 >> 26); h1 &= 0x3ffffff;
+	h2 = _mm_cvtsi128_si32(H2) + b; b = (h2 >> 26); h2 &= 0x3ffffff;
+	h3 = _mm_cvtsi128_si32(H3) + b; b = (h3 >> 26); h3 &= 0x3ffffff;
+	h4 = _mm_cvtsi128_si32(H4) + b; b = (h4 >> 26); h4 &= 0x3ffffff;
+	h0 =              h0 + (b * 5);
 
 	if (inlen < 16) goto poly1305_donna_atmost15bytes;
 

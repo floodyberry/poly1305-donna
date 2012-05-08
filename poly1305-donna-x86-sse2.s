@@ -600,7 +600,7 @@ poly1305_auth_x86_sse2:
  movdqa %xmm5, %xmm7
  pmuludq 2016(%esp), %xmm7
  paddq %xmm7, %xmm6
- movdqa %xmm6, 2208(%esp)
+ movdqa %xmm6, 2224(%esp)
  movdqa %xmm0, %xmm7
  movdqa %xmm1, %xmm6
  pmuludq 2000(%esp), %xmm7
@@ -619,7 +619,7 @@ poly1305_auth_x86_sse2:
  movdqa %xmm0, %xmm2
  paddq %xmm6, %xmm7
  movdqa 1920(%esp), %xmm6
- movdqa %xmm7, 2192(%esp)
+ movdqa %xmm7, 2208(%esp)
  movdqa %xmm1, %xmm7
  pmuludq %xmm6, %xmm2
  pmuludq 2000(%esp), %xmm7
@@ -634,7 +634,7 @@ poly1305_auth_x86_sse2:
  paddq %xmm3, %xmm2
  movdqa 1904(%esp), %xmm4
  movdqa %xmm0, %xmm3
- movdqa %xmm2, 2176(%esp)
+ movdqa %xmm2, 2192(%esp)
  movdqa %xmm1, %xmm2
  pmuludq %xmm4, %xmm3
  pmuludq %xmm6, %xmm2
@@ -659,19 +659,19 @@ poly1305_auth_x86_sse2:
  pmuludq 2000(%esp), %xmm2
  paddq %xmm1, %xmm0
  paddq %xmm2, %xmm0
- movdqa 2208(%esp), %xmm6
- movdqa 2192(%esp), %xmm4
- movdqa 2176(%esp), %xmm7
+ movdqa 2224(%esp), %xmm6
+ movdqa 2208(%esp), %xmm4
+ movdqa 2192(%esp), %xmm7
  paddq %xmm5, %xmm0
  jbe ..B1.16
 
 ..B1.13:
  movdqa %xmm0, 2160(%esp)
  movl $1, %esi
- movdqa %xmm3, 2224(%esp)
- movdqa %xmm7, 2176(%esp)
- movdqa %xmm4, 2192(%esp)
- movdqa %xmm6, 2208(%esp)
+ movdqa %xmm3, 2176(%esp)
+ movdqa %xmm7, 2192(%esp)
+ movdqa %xmm4, 2208(%esp)
+ movdqa %xmm6, 2224(%esp)
 
 ..B1.14:
  movq 16(%ebp), %xmm6
@@ -718,10 +718,10 @@ poly1305_auth_x86_sse2:
  movdqa 80(%edi), %xmm2
  pmuludq %xmm6, %xmm2
  paddq %xmm2, %xmm1
- movdqa 2208(%esp), %xmm2
+ movdqa 2224(%esp), %xmm2
  paddq %xmm1, %xmm2
  movdqa 16(%edi), %xmm1
- movdqa %xmm2, 2208(%esp)
+ movdqa %xmm2, 2224(%esp)
  movdqa %xmm1, %xmm2
  pmuludq %xmm7, %xmm2
  pmuludq %xmm3, %xmm1
@@ -735,10 +735,10 @@ poly1305_auth_x86_sse2:
  movdqa 96(%edi), %xmm0
  pmuludq %xmm6, %xmm0
  paddq %xmm0, %xmm2
- movdqa 2192(%esp), %xmm0
+ movdqa 2208(%esp), %xmm0
  paddq %xmm2, %xmm0
  movdqa 32(%edi), %xmm2
- movdqa %xmm0, 2192(%esp)
+ movdqa %xmm0, 2208(%esp)
  movdqa %xmm2, %xmm0
  pmuludq %xmm7, %xmm0
  pmuludq %xmm3, %xmm2
@@ -752,9 +752,9 @@ poly1305_auth_x86_sse2:
  movdqa 112(%edi), %xmm1
  pmuludq %xmm6, %xmm1
  paddq %xmm1, %xmm0
- movdqa 2176(%esp), %xmm1
+ movdqa 2192(%esp), %xmm1
  paddq %xmm0, %xmm1
- movdqa %xmm1, 2176(%esp)
+ movdqa %xmm1, 2192(%esp)
  movdqa 48(%edi), %xmm1
  movdqa %xmm1, %xmm0
  pmuludq %xmm7, %xmm0
@@ -777,20 +777,20 @@ poly1305_auth_x86_sse2:
  pmuludq (%edi), %xmm6
  paddq %xmm2, %xmm0
  paddq %xmm6, %xmm7
- movdqa 2224(%esp), %xmm2
+ movdqa 2176(%esp), %xmm2
  movdqa 2160(%esp), %xmm5
  paddq %xmm0, %xmm2
  paddq %xmm7, %xmm5
- movdqa %xmm2, 2224(%esp)
+ movdqa %xmm2, 2176(%esp)
  movdqa %xmm5, 2160(%esp)
  jb ..B1.14
 
 ..B1.15:
  movdqa 2160(%esp), %xmm0
- movdqa 2224(%esp), %xmm3
- movdqa 2176(%esp), %xmm7
- movdqa 2192(%esp), %xmm4
- movdqa 2208(%esp), %xmm6
+ movdqa 2176(%esp), %xmm3
+ movdqa 2192(%esp), %xmm7
+ movdqa 2208(%esp), %xmm4
+ movdqa 2224(%esp), %xmm6
 
 ..B1.16:
  movdqa %xmm6, %xmm1
@@ -813,7 +813,7 @@ poly1305_auth_x86_sse2:
  pand %xmm2, %xmm6
  paddq %xmm1, %xmm3
  paddq %xmm5, %xmm6
- movdqa %xmm3, 2224(%esp)
+ movdqa %xmm3, 2176(%esp)
  pand %xmm2, %xmm4
  movq 16(%ebp), %xmm3
  pand %xmm2, %xmm7
@@ -846,7 +846,7 @@ poly1305_auth_x86_sse2:
  pand %xmm5, %xmm4
  psrlq $26, %xmm5
  paddq %xmm7, %xmm4
- movdqa 2224(%esp), %xmm7
+ movdqa 2176(%esp), %xmm7
  pand %xmm2, %xmm5
  pand %xmm7, %xmm6
  psrlq $26, %xmm7
@@ -865,30 +865,30 @@ poly1305_auth_x86_sse2:
 
 ..B1.17:
  xorl %edx, %edx
+ xorl %ebx, %ebx
  xorl %esi, %esi
  xorl %ecx, %ecx
- xorl %edi, %edi
  xorl %eax, %eax
 
 ..B1.57:
  movl %eax, 52(%esp)
  movl %edx, 48(%esp)
- movl %esi, 32(%esp)
- movl %ecx, 36(%esp)
- movl %edi, 40(%esp)
+ movl %ebx, 32(%esp)
+ movl %esi, 36(%esp)
+ movl %ecx, 40(%esp)
  jmp ..B1.42
 
 ..B1.18:
  xorl %edx, %edx
+ xorl %ebx, %ebx
  xorl %esi, %esi
  xorl %ecx, %ecx
- xorl %edi, %edi
  xorl %eax, %eax
 
 ..B1.56:
- movl %esi, 32(%esp)
- movl %ecx, 36(%esp)
- movl %edi, 40(%esp)
+ movl %esi, 36(%esp)
+ movl %ebx, 32(%esp)
+ movl %ecx, 40(%esp)
  movl 2244(%esp), %esi
 
 ..B1.19:
@@ -1273,18 +1273,18 @@ poly1305_auth_x86_sse2:
  movl 1956(%esp), %edi
 
 ..B1.47:
- movl 2268(%esp), %ebp
- movl 2280(%esp), %eax
- movl %ebp, -88(%ebx,%edi)
- movl %eax, -136(%ebx,%edi)
+ movl 2268(%esp), %eax
+ movl 2280(%esp), %edx
+ movl %eax, -88(%ebx,%edi)
+ movl %edx, -136(%ebx,%edi)
  movl $0, -132(%ebx,%edi)
- movl 2248(%esp), %ebp
+ movl 2248(%esp), %eax
  movdqa 1872(%esp), %xmm2
  movdqa %xmm6, 2128(%esp)
  movdqa %xmm2, %xmm3
  movdqa %xmm1, 1936(%esp)
  movdqa %xmm0, %xmm1
- movl %ebp, -8(%ebx,%edi)
+ movl %eax, -8(%ebx,%edi)
  movl $0, -4(%ebx,%edi)
  movdqa -144(%ebx,%edi), %xmm6
  pmuludq %xmm6, %xmm1
@@ -1298,16 +1298,16 @@ poly1305_auth_x86_sse2:
  paddq %xmm3, %xmm1
  movdqa %xmm7, %xmm3
  pmuludq -32(%ebx,%edi), %xmm3
- movl 2276(%esp), %edx
- movl %edx, -120(%ebx,%edi)
- movl 2256(%esp), %edx
- movl %edx, -40(%ebx,%edi)
+ movl 2276(%esp), %esi
+ movl %esi, -120(%ebx,%edi)
+ movl 2256(%esp), %esi
+ movl %esi, -40(%ebx,%edi)
  movl $0, -36(%ebx,%edi)
  paddq %xmm3, %xmm1
  movdqa %xmm4, %xmm3
  pmuludq -48(%ebx,%edi), %xmm3
- movl 2260(%esp), %eax
- movl %eax, -56(%ebx,%edi)
+ movl 2260(%esp), %edx
+ movl %edx, -56(%ebx,%edi)
  movl $0, -52(%ebx,%edi)
  paddq %xmm3, %xmm1
  movdqa -64(%ebx,%edi), %xmm3
@@ -1331,9 +1331,9 @@ poly1305_auth_x86_sse2:
  movdqa -16(%ebx,%edi), %xmm7
  movdqa %xmm5, 1968(%esp)
  pmuludq %xmm7, %xmm5
- movl 2264(%esp), %esi
+ movl 2264(%esp), %ebp
  paddq %xmm5, %xmm1
- movl %esi, -72(%ebx,%edi)
+ movl %ebp, -72(%ebx,%edi)
  movdqa %xmm2, %xmm5
  movl $0, -68(%ebx,%edi)
  movdqa %xmm1, 1904(%esp)
@@ -1389,50 +1389,71 @@ poly1305_auth_x86_sse2:
  psrlq $26, %xmm5
  pmuludq 1936(%esp), %xmm5
  paddq %xmm4, %xmm0
- movdqa 1920(%esp), %xmm4
  movdqa 2128(%esp), %xmm3
- movdqa %xmm4, %xmm2
  movdqa 1888(%esp), %xmm6
- psrlq $26, %xmm2
- pand %xmm3, %xmm6
  movdqa %xmm3, %xmm7
- paddq %xmm2, %xmm0
+ movdqa 1920(%esp), %xmm4
+ pand %xmm3, %xmm6
+ movdqa %xmm4, %xmm2
+ pand %xmm3, %xmm4
  paddq %xmm5, %xmm6
- movdqa 1904(%esp), %xmm2
- movdqa %xmm3, %xmm5
- pand %xmm0, %xmm5
+ psrlq $26, %xmm2
  pand %xmm6, %xmm7
+ paddq %xmm2, %xmm0
+ psrlq $26, %xmm6
+ movdqa %xmm3, %xmm5
+ movdqa 1904(%esp), %xmm2
+ pand %xmm0, %xmm5
+ paddq %xmm6, %xmm4
  pand %xmm3, %xmm2
  psrlq $26, %xmm0
  paddq %xmm0, %xmm2
- pand %xmm3, %xmm4
  movdqa %xmm3, %xmm0
  pand %xmm3, %xmm1
  movdqa %xmm7, %xmm3
- psrldq $8, %xmm3
- psrlq $26, %xmm6
- paddq %xmm6, %xmm4
- paddq %xmm3, %xmm7
- pand %xmm2, %xmm0
  movdqa %xmm4, %xmm6
- movd %xmm7, %edx
- movdqa %xmm0, %xmm7
+ psrldq $8, %xmm3
+ pand %xmm2, %xmm0
  psrldq $8, %xmm6
  psrlq $26, %xmm2
- psrldq $8, %xmm7
- paddq %xmm2, %xmm1
+ paddq %xmm3, %xmm7
  paddq %xmm6, %xmm4
- paddq %xmm7, %xmm0
- movd %xmm4, %esi
+ paddq %xmm2, %xmm1
+ movd %xmm7, %edx
+ movd %xmm4, %edi
  movdqa %xmm5, %xmm4
+ movdqa %xmm0, %xmm7
  psrldq $8, %xmm4
- movd %xmm0, %edi
+ psrldq $8, %xmm7
+ movl %edx, %ebx
+ paddq %xmm4, %xmm5
+ paddq %xmm7, %xmm0
+ movd %xmm5, %ecx
+ movd %xmm0, %eax
  movdqa %xmm1, %xmm0
  psrldq $8, %xmm0
- paddq %xmm4, %xmm5
  paddq %xmm0, %xmm1
- movd %xmm5, %ecx
- movd %xmm1, %eax
+ shrl $26, %ebx
+ andl $67108863, %edx
+ addl %ebx, %edi
+ movl %edi, %ebx
+ shrl $26, %edi
+ andl $67108863, %ebx
+ addl %edi, %ecx
+ movl %ecx, %esi
+ shrl $26, %ecx
+ andl $67108863, %esi
+ movd %xmm1, %ebp
+ addl %ecx, %eax
+ movl %eax, %ecx
+ shrl $26, %eax
+ andl $67108863, %ecx
+ addl %eax, %ebp
+ movl %ebp, %eax
+ shrl $26, %ebp
+ andl $67108863, %eax
+ lea (%ebp,%ebp,4), %edi
+ addl %edi, %edx
  cmpl $16, 2244(%esp)
  jb ..B1.56
  jmp ..B1.57
@@ -1442,25 +1463,25 @@ poly1305_auth_x86_sse2:
  jmp ..B1.36
 
 ..B1.52:
- movl %edx, %ebx
+ movl %edx, %ebp
  andl $67108863, %edx
+ shrl $26, %ebp
+ movl 32(%esp), %ebx
+ addl %ebp, %ebx
+ movl %ebx, %ebp
  shrl $26, %ebx
- movl 32(%esp), %esi
- addl %ebx, %esi
- movl %esi, %ebp
- shrl $26, %esi
  andl $67108863, %ebp
- movl 36(%esp), %ecx
- addl %esi, %ecx
- movl %ecx, %ebx
- shrl $26, %ecx
+ movl 36(%esp), %esi
+ addl %ebx, %esi
+ movl %esi, %ebx
+ shrl $26, %esi
  andl $67108863, %ebx
- movl 40(%esp), %edi
- addl %ecx, %edi
- movl %edi, %esi
- shrl $26, %edi
+ movl 40(%esp), %ecx
+ addl %esi, %ecx
+ movl %ecx, %esi
+ shrl $26, %ecx
  andl $67108863, %esi
- addl %edi, %eax
+ addl %ecx, %eax
  movl %eax, %ecx
  shrl $26, %eax
  andl $67108863, %ecx
@@ -1534,23 +1555,23 @@ poly1305_auth_x86_sse2:
  movl 16(%esp), %eax
  andl %edi, %eax
  orl %eax, %ecx
- shrl $18, %esi
- shll $8, %ecx
  addl 20(%esp), %ebp
  movl 24(%esp), %eax
  adcl $0, %eax
+ shrl $18, %esi
+ shll $8, %ecx
  orl %ecx, %esi
  addl 28(%edx), %esi
  addl %eax, %ebx
- movl 2304(%esp), %edx
+ movl 2304(%esp), %edi
+ movl 28(%esp), %edx
+ adcl $0, %edx
  movl 4(%esp), %ecx
- movl %ebp, 4(%edx)
- movl 28(%esp), %ebp
- adcl $0, %ebp
- addl %ebp, %esi
- movl %ecx, (%edx)
- movl %ebx, 8(%edx)
- movl %esi, 12(%edx)
+ addl %edx, %esi
+ movl %ecx, (%edi)
+ movl %ebp, 4(%edi)
+ movl %ebx, 8(%edi)
+ movl %esi, 12(%edi)
  movl 2300(%esp), %esp
  popl %ebp
  popl %ebx
