@@ -14,7 +14,7 @@ static const MM16 uint32_t poly1305_x64_sse2_5[4] = {5, 0, 5, 0};
 static const MM16 uint32_t poly1305_x64_sse2_1shl128[4] = {(1 << 24), 0, (1 << 24), 0};
 
 void
-poly1305_auth_x64_sse2(unsigned char out[16], const unsigned char *m, size_t inlen, const unsigned char key[32]) {
+poly1305_auth(unsigned char out[16], const unsigned char *m, size_t inlen, const unsigned char key[32]) {
 	xmmi MMASK = _mm_load_si128((xmmi *)poly1305_x64_sse2_message_mask);
 	xmmi FIVE = _mm_load_si128((xmmi*)poly1305_x64_sse2_5);
 	xmmi HIBIT = _mm_load_si128((xmmi*)poly1305_x64_sse2_1shl128);

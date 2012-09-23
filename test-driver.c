@@ -21,21 +21,21 @@ typedef struct builds_t {
 
 builds build_list[] = {
 #if defined(CPU_X86)
-	{"x86asm", compiler " test-poly1305.c poly1305-x86.s -Dpoly1305_auth=poly1305_x86_auth -O3 -o test-poly1305" build_suffix},
+	{"x86asm", compiler " test-poly1305.c poly1305-x86.s -O3 -o test-poly1305" build_suffix},
 #endif
 #if defined(CPU_X86)
-	{"x86sse2", compiler " test-poly1305.c poly1305-donna-x86-sse2.s -Dpoly1305_auth=poly1305_auth_x86_sse2 -O3 -msse2 -o test-poly1305" build_suffix},
+	{"x86sse2", compiler " test-poly1305.c poly1305-donna-x86-sse2.s -O3 -o test-poly1305" build_suffix},
 #endif
 #if defined(CPU_X86_64)
-	{"x64asm", compiler " test-poly1305.c poly1305-amd64.s -Dpoly1305_auth=poly1305_amd64_auth -O3 -o test-poly1305" build_suffix},
+	{"x64asm", compiler " test-poly1305.c poly1305-amd64.s -O3 -o test-poly1305" build_suffix},
 #endif
 #if defined(CPU_X86_64)
-	{"x64sse2", compiler " test-poly1305.c poly1305-donna-x64-sse2.s -Dpoly1305_auth=poly1305_auth_x64_sse2 -O3 -msse2 -o test-poly1305" build_suffix},
+	{"x64sse2", compiler " test-poly1305.c poly1305-donna-x64-sse2.s -O3 -o test-poly1305" build_suffix},
 #endif
 #if defined(CPU_64BITS)
-	{"64bit", compiler " test-poly1305.c poly1305-donna-c64-unrolled.c -Dpoly1305_auth=poly1305_donna_c64_unrolled_auth -O3 -o test-poly1305" build_suffix},
+	{"64bit", compiler " test-poly1305.c poly1305-donna-c64-unrolled.c -O3 -o test-poly1305" build_suffix},
 #endif
-	{"32bit", compiler " test-poly1305.c poly1305-donna-unrolled.c -Dpoly1305_auth=poly1305_donna_unrolled_auth -O3 -o test-poly1305" build_suffix},
+	{"32bit", compiler " test-poly1305.c poly1305-donna-unrolled.c -O3 -o test-poly1305" build_suffix},
 	{NULL, NULL}
 };
 

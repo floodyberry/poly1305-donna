@@ -1,7 +1,7 @@
 .text
 .align 16,0x90
-.globl poly1305_auth_x64_sse2
-poly1305_auth_x64_sse2:
+.globl poly1305_auth
+poly1305_auth:
  pushq %r12
  pushq %r13
  pushq %r14

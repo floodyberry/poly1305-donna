@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "poly1305-donna.h"
 #include "poly1305-defines.h"
 
 #if defined(_MSC_VER)
@@ -36,8 +37,6 @@ unsigned char mod[16];
 unsigned char kr[32];
 unsigned char m[MAXLEN];
 
-extern void poly1305_auth(unsigned char mac[16], const unsigned char *m, size_t len, const unsigned char key[32]);
-
 int main(int argc, const char *argv[]) {
 	int loop, len, i, x, y, lim = 1000;
 	
@@ -45,7 +44,7 @@ int main(int argc, const char *argv[]) {
 		lim = atoi(argv[1]);
 		srandom(lim);
 	}
-	
+
 	make_dummy_data(m, MAXLEN, 0xcafebabe ^ lim);
 	make_dummy_data(kr, 32, 0xdeadbeef ^ lim);
 

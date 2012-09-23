@@ -1,7 +1,7 @@
 .text
 .align 16,0x90
-.globl poly1305_auth_x86_sse2
-poly1305_auth_x86_sse2:
+.globl poly1305_auth
+poly1305_auth:
  pushl %esi
  pushl %edi
  pushl %ebx

@@ -232,10 +232,10 @@ crypto_onetimeauth_poly1305_amd64_rounding:
 # qhasm: enter crypto_onetimeauth_poly1305_amd64
 .text
 .p2align 5
-.globl _poly1305_amd64_auth
-.globl poly1305_amd64_auth
-_poly1305_amd64_auth:
-poly1305_amd64_auth:
+.globl _poly1305_auth
+.globl poly1305_auth
+_poly1305_auth:
+poly1305_auth:
 mov %rsp,%r11
 and $31,%r11
 add $192,%r11

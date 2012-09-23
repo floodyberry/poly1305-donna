@@ -1,7 +1,7 @@
 #include "poly1305-defines.h"
 
 void
-poly1305_donna_c64_unrolled_auth(unsigned char out[16], const unsigned char *m, size_t inlen, const unsigned char key[32]) {
+poly1305_auth(unsigned char out[16], const unsigned char *m, size_t inlen, const unsigned char key[32]) {
 	uint64_t t0,t1;
 	uint64_t h0,h1,h2;
 	uint64_t r0,r1,r2;

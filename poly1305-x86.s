@@ -240,10 +240,10 @@ crypto_onetimeauth_poly1305_x86_rounding:
 # qhasm: enter crypto_onetimeauth_poly1305_x86 stackaligned4096 crypto_onetimeauth_poly1305_x86_constants
 .text
 .p2align 5
-.globl _poly1305_x86_auth
-.globl poly1305_x86_auth
-_poly1305_x86_auth:
-poly1305_x86_auth:
+.globl _poly1305_auth
+.globl poly1305_auth
+_poly1305_auth:
+poly1305_auth:
 mov %esp,%eax
 sub $crypto_onetimeauth_poly1305_x86_constants,%eax
 and $4095,%eax
