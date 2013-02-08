@@ -76,7 +76,7 @@ int main(int argc, const char *argv[]) {
 	const char **expected_result = expected_results, *verdict;
 	int specific_test_seen = 0;
 	FILE *f;
-	
+
 	printf("USAGE: test-driver%s [", test_suffix);
 	for (build = build_list; build->type; build++) {
 		printf("%s%s", build->type, (build+1)->type ? ",":"");
@@ -84,7 +84,7 @@ int main(int argc, const char *argv[]) {
 			specific_test_seen |= (strcmp(build->type, specific_test) == 0);
 	}
 	printf("]\n\n");
-	
+
 	if (specific_test && !specific_test_seen) {
 		printf("  unknown type %s!\n\n", specific_test);
 		return 1;
@@ -92,14 +92,14 @@ int main(int argc, const char *argv[]) {
 
 	for (limit = 1; limit < (1 << 31); limit <<= 1) {
 		printf("\n%u passes\n", limit);
-		
+
 		for (build = build_list; build->type; build++) {
 			if (specific_test && (strcmp(build->type, specific_test) != 0))
 				continue;
 			if (system(build->build_string))
 				goto finished;
 			memset(out, 0, sizeof(out));
-			sprintf(cmd, "./test-poly1305%s %u | openssl md5", test_suffix, limit);
+			sprintf(cmd, "./test-poly1305%s %u | md5sum", test_suffix, limit);
 			f = popen(cmd, "r");
 			if (!f)
 				verdict = "FAIL OPEN";
@@ -115,7 +115,7 @@ int main(int argc, const char *argv[]) {
 				pclose(f);
 			printf("%s [%s]\n", verdict, build->build_string);
 		}
-		
+
 		if (*expected_result)
 			expected_result++;
 	}
