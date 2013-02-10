@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
-#include "poly1305-defines.h"
+#include "portable-jane.h"
 
 #define compiler "gcc"
 

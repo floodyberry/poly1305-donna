@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "poly1305-donna.h"
-#include "poly1305-defines.h"
+#include "portable-jane.h"
 
 #if defined(_MSC_VER)
 	#define random rand

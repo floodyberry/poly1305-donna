@@ -1,4 +1,4 @@
-#include "poly1305-defines.h"
+#include "portable-jane.h"
 
 void
 poly1305_auth(unsigned char out[16], const unsigned char *m, size_t inlen, const unsigned char key[32]) {

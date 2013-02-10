@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "poly1305-donna.h"
-#include "poly1305-defines.h"
+#include "portable-jane.h"
 
 /* ticks - not tested on anything other than x86 */
 static uint64_t

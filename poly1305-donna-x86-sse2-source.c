@@ -3,13 +3,13 @@
 	implements simd vectorization based on the algorithm described in http://cr.yp.to/papers.html#neoncrypto
 */
 
-#include "poly1305-defines.h"
+#include "portable-jane.h"
 #include <emmintrin.h>
 typedef __m128i xmmi;
 
-static const MM16 uint32_t poly1305_x86_sse2_message_mask[4] = {(1 << 26) - 1, 0, (1 << 26) - 1, 0};
-static const MM16 uint32_t poly1305_x86_sse2_5[4] = {5, 0, 5, 0};
-static const MM16 uint32_t poly1305_x86_sse2_1shl128[4] = {(1 << 24), 0, (1 << 24), 0};
+static const uint32_t ALIGN(16) poly1305_x86_sse2_message_mask[4] = {(1 << 26) - 1, 0, (1 << 26) - 1, 0};
+static const uint32_t ALIGN(16) poly1305_x86_sse2_5[4] = {5, 0, 5, 0};
+static const uint32_t ALIGN(16) poly1305_x86_sse2_1shl128[4] = {(1 << 24), 0, (1 << 24), 0};
 
 void
 poly1305_auth(unsigned char out[16], const unsigned char *m, size_t inlen, const unsigned char key[32]) {

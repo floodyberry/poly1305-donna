@@ -5,13 +5,13 @@
 */
 
 
-#include "poly1305-defines.h"
+#include "portable-jane.h"
 #include <emmintrin.h>
 typedef __m128i xmmi;
 
-static const MM16 uint32_t poly1305_x64_sse2_message_mask[4] = {(1 << 26) - 1, 0, (1 << 26) - 1, 0};
-static const MM16 uint32_t poly1305_x64_sse2_5[4] = {5, 0, 5, 0};
-static const MM16 uint32_t poly1305_x64_sse2_1shl128[4] = {(1 << 24), 0, (1 << 24), 0};
+static const uint32_t ALIGN(16) poly1305_x64_sse2_message_mask[4] = {(1 << 26) - 1, 0, (1 << 26) - 1, 0};
+static const uint32_t ALIGN(16) poly1305_x64_sse2_5[4] = {5, 0, 5, 0};
+static const uint32_t ALIGN(16) poly1305_x64_sse2_1shl128[4] = {(1 << 24), 0, (1 << 24), 0};
 
 void
 poly1305_auth(unsigned char out[16], const unsigned char *m, size_t inlen, const unsigned char key[32]) {
@@ -41,9 +41,6 @@ poly1305_auth(unsigned char out[16], const unsigned char *m, size_t inlen, const
 	uint64_t s21,s22;
 	size_t j, powers, blocksize, p;
 	uint128_t d[3];
-#if !defined(HAVE_NATIVE_UINT128)
-	uint128_t mul;
-#endif
 	unsigned char mp[16];
 
 	/* clamp key */
@@ -89,19 +86,13 @@ poly1305_auth(unsigned char out[16], const unsigned char *m, size_t inlen, const
 
 	/* r^2 */
 	if (1) {
-#if defined(HAVE_NATIVE_UINT128)
-		d[0] = ((uint128_t)r0 * r0) + ((uint128_t)(r1 * 2) * s2);
-		d[1] = ((uint128_t)r2 * s2) + ((uint128_t)(r0 * 2) * r1);
-		d[2] = ((uint128_t)r1 * r1) + ((uint128_t)(r2 * 2) * r0);
-#else
-		mul64x64_128(d[0], r0, r0) mul64x64_128(mul, r1 * 2, s2) add128(d[0], mul)
-		mul64x64_128(d[1], r2, s2) mul64x64_128(mul, r0 * 2, r1) add128(d[1], mul)
-		mul64x64_128(d[2], r1, r1) mul64x64_128(mul, r2 * 2, r0) add128(d[2], mul)
-#endif
+		d[0] = add128(mul64x64_128(r0, r0), mul64x64_128(r1 * 2, s2));
+		d[1] = add128(mul64x64_128(r2, s2), mul64x64_128(r0 * 2, r1));
+		d[2] = add128(mul64x64_128(r1, r1), mul64x64_128(r2 * 2, r0));
 
-						   r20 = lo128(d[0]) & 0xfffffffffff; shr128(c, d[0], 44);
-		add128_64(d[1], c) r21 = lo128(d[1]) & 0xfffffffffff; shr128(c, d[1], 44);
-		add128_64(d[2], c) r22 = lo128(d[2]) & 0x3ffffffffff; shr128(c, d[2], 42);
+		                           r20 = lo128(d[0]) & 0xfffffffffff; c = shr128(d[0], 44);
+		d[1] = add128_64(d[1], c); r21 = lo128(d[1]) & 0xfffffffffff; c = shr128(d[1], 44);
+		d[2] = add128_64(d[2], c); r22 = lo128(d[2]) & 0x3ffffffffff; c = shr128(d[2], 42);
 		r20 += c * 5; c = (r20 >> 44); r20 = r20 & 0xfffffffffff; 
 		r21 += c;
 
@@ -129,19 +120,13 @@ poly1305_auth(unsigned char out[16], const unsigned char *m, size_t inlen, const
 
 	/* r^4 */
 	if (powers > 1) {
-#if defined(HAVE_NATIVE_UINT128)
-		d[0] = ((uint128_t)r20 * r20) + ((uint128_t)(r21 * 2) * s22);
-		d[1] = ((uint128_t)r22 * s22) + ((uint128_t)(r20 * 2) * r21);
-		d[2] = ((uint128_t)r21 * r21) + ((uint128_t)(r22 * 2) * r20);
-#else
-		mul64x64_128(d[0], r20, r20) mul64x64_128(mul, r21 * 2, s22) add128(d[0], mul)
-		mul64x64_128(d[1], r22, s22) mul64x64_128(mul, r20 * 2, r21) add128(d[1], mul)
-		mul64x64_128(d[2], r21, r21) mul64x64_128(mul, r22 * 2, r20) add128(d[2], mul)
-#endif
+		d[0] = add128(mul64x64_128(r20, r20), mul64x64_128(r21 * 2, s22));
+		d[1] = add128(mul64x64_128(r22, s22), mul64x64_128(r20 * 2, r21));
+		d[2] = add128(mul64x64_128(r21, r21), mul64x64_128(r22 * 2, r20));
 
-						   rp0 = lo128(d[0]) & 0xfffffffffff; shr128(c, d[0], 44);
-		add128_64(d[1], c) rp1 = lo128(d[1]) & 0xfffffffffff; shr128(c, d[1], 44);
-		add128_64(d[2], c) rp2 = lo128(d[2]) & 0x3ffffffffff; shr128(c, d[2], 42);
+		                           rp0 = lo128(d[0]) & 0xfffffffffff; c = shr128(d[0], 44);
+		d[1] = add128_64(d[1], c); rp1 = lo128(d[1]) & 0xfffffffffff; c = shr128(d[1], 44);
+		d[2] = add128_64(d[2], c); rp2 = lo128(d[2]) & 0x3ffffffffff; c = shr128(d[2], 42);
 		rp0 += c * 5; c = (rp0 >> 44); rp0 = rp0 & 0xfffffffffff; 
 		rp1 += c;
 
@@ -162,19 +147,13 @@ poly1305_auth(unsigned char out[16], const unsigned char *m, size_t inlen, const
 	
 	/* r^6, r^8... */
 	for (; p < powers; p++) {
-#if defined(HAVE_NATIVE_UINT128)
-		d[0] = ((uint128_t)rp0 * r20) + ((uint128_t)rp1 * s22) + ((uint128_t)rp2 * s21);
-		d[1] = ((uint128_t)rp0 * r21) + ((uint128_t)rp1 * r20) + ((uint128_t)rp2 * s22);
-		d[2] = ((uint128_t)rp0 * r22) + ((uint128_t)rp1 * r21) + ((uint128_t)rp2 * r20);
-#else
-		mul64x64_128(d[0], rp0, r20) mul64x64_128(mul, rp1, s22) add128(d[0], mul) mul64x64_128(mul, rp2, s21) add128(d[0], mul)
-		mul64x64_128(d[1], rp0, r21) mul64x64_128(mul, rp1, r20) add128(d[1], mul) mul64x64_128(mul, rp2, s22) add128(d[1], mul)
-		mul64x64_128(d[2], rp0, r22) mul64x64_128(mul, rp1, r21) add128(d[2], mul) mul64x64_128(mul, rp2, r20) add128(d[2], mul)
-#endif
+		d[0] = add128(add128(mul64x64_128(rp0, r20), mul64x64_128(rp1, s22)), mul64x64_128(rp2, s21));
+		d[1] = add128(add128(mul64x64_128(rp0, r21), mul64x64_128(rp1, r20)), mul64x64_128(rp2, s22));
+		d[2] = add128(add128(mul64x64_128(rp0, r22), mul64x64_128(rp1, r21)), mul64x64_128(rp2, r20));
 
-						   rp0 = lo128(d[0]) & 0xfffffffffff; shr128(c, d[0], 44);
-		add128_64(d[1], c) rp1 = lo128(d[1]) & 0xfffffffffff; shr128(c, d[1], 44);
-		add128_64(d[2], c) rp2 = lo128(d[2]) & 0x3ffffffffff; shr128(c, d[2], 42);
+		                           rp0 = lo128(d[0]) & 0xfffffffffff; c = shr128(d[0], 44);
+		d[1] = add128_64(d[1], c); rp1 = lo128(d[1]) & 0xfffffffffff; c = shr128(d[1], 44);
+		d[2] = add128_64(d[2], c); rp2 = lo128(d[2]) & 0x3ffffffffff; c = shr128(d[2], 42);
 		rp0 += c * 5; c = (rp0 >> 44); rp0 = rp0 & 0xfffffffffff; 
 		rp1 += c;
 
@@ -308,25 +287,18 @@ poly1305_donna_atmost31bytes:
 	t0 = U8TO64_LE(m + 0);
 	t1 = U8TO64_LE(m + 8);
 	h0 += t0 & 0xfffffffffff;
-	shr128_pair(t0, t1, t0, 44);
+	t0 = shr128_pair(t1, t0, 44);
 	h1 += t0 & 0xfffffffffff;
 	h2 += (t1 >> 24) | ((uint64_t)1 << 40);
 
 poly1305_donna_mul:
-#if defined(HAVE_NATIVE_UINT128)
-	d[0] = ((uint128_t)h0 * r0) + ((uint128_t)h1 * s2) + ((uint128_t)h2 * s1);
-	d[1] = ((uint128_t)h0 * r1) + ((uint128_t)h1 * r0) + ((uint128_t)h2 * s2);
-	d[2] = ((uint128_t)h0 * r2) + ((uint128_t)h1 * r1) + ((uint128_t)h2 * r0);
-#else
-	mul64x64_128(d[0], h0, r0) mul64x64_128(mul, h1, s2) add128(d[0], mul) mul64x64_128(mul, h2, s1) add128(d[0], mul)
-	mul64x64_128(d[1], h0, r1) mul64x64_128(mul, h1, r0) add128(d[1], mul) mul64x64_128(mul, h2, s2) add128(d[1], mul)
-	mul64x64_128(d[2], h0, r2) mul64x64_128(mul, h1, r1) add128(d[2], mul) mul64x64_128(mul, h2, r0) add128(d[2], mul)
-#endif
-
-	                   h0 = lo128(d[0]) & 0xfffffffffff; shr128(c, d[0], 44);
-	add128_64(d[1], c) h1 = lo128(d[1]) & 0xfffffffffff; shr128(c, d[1], 44);
-	add128_64(d[2], c) h2 = lo128(d[2]) & 0x3ffffffffff; shr128(c, d[2], 42);
-	h0   += c * 5;
+	d[0] = add128(add128(mul64x64_128(h0, r0), mul64x64_128(h1, s2)), mul64x64_128(h2, s1));
+	d[1] = add128(add128(mul64x64_128(h0, r1), mul64x64_128(h1, r0)), mul64x64_128(h2, s2));
+	d[2] = add128(add128(mul64x64_128(h0, r2), mul64x64_128(h1, r1)), mul64x64_128(h2, r0));
+	                           h0 = lo128(d[0]) & 0xfffffffffff; c = shr128(d[0], 44);
+	d[1] = add128_64(d[1], c); h1 = lo128(d[1]) & 0xfffffffffff; c = shr128(d[1], 44);
+	d[2] = add128_64(d[2], c); h2 = lo128(d[2]) & 0x3ffffffffff; c = shr128(d[2], 42);
+	h0   += c * 5;  
 
 	m += 16;
 	inlen -= 16;
@@ -344,7 +316,7 @@ poly1305_donna_atmost15bytes:
 	t0 = U8TO64_LE(mp+0);
 	t1 = U8TO64_LE(mp+8);
 	h0 += t0 & 0xfffffffffff;
-	shr128_pair(t0, t1, t0, 44);
+	t0 = shr128_pair(t1, t0, 44);
 	h1 += t0 & 0xfffffffffff;
 	h2 += (t1 >> 24);
 
@@ -369,7 +341,7 @@ poly1305_donna_finish:
 	t0 = U8TO64_LE(key+16);
 	t1 = U8TO64_LE(key+24);
 	h0 += (t0 & 0xfffffffffff)    ; c = (h0 >> 44); h0 &= 0xfffffffffff;
-	shr128_pair(t0, t1, t0, 44);
+	t0 = shr128_pair(t1, t0, 44);
 	h1 += (t0 & 0xfffffffffff) + c; c = (h1 >> 44); h1 &= 0xfffffffffff;
 	h2 += (t1 >> 24          ) + c;
 

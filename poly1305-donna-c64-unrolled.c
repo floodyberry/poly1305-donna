@@ -1,4 +1,4 @@
-#include "poly1305-defines.h"
+#include "portable-jane.h"
 
 void
 poly1305_auth(unsigned char out[16], const unsigned char *m, size_t inlen, const unsigned char key[32]) {
@@ -9,9 +9,6 @@ poly1305_auth(unsigned char out[16], const unsigned char *m, size_t inlen, const
 	uint64_t s1,s2;
 	size_t j;
 	uint128_t d[3];
-#if !defined(HAVE_NATIVE_UINT128)
-	uint128_t mul;
-#endif
 	unsigned char mp[16];
 
 	/* clamp key */
@@ -36,40 +33,25 @@ poly1305_auth(unsigned char out[16], const unsigned char *m, size_t inlen, const
 	if (inlen < 64) goto poly1305_donna_atmost63bytes;
 
 	/* macros */
-#define add_block(offset) \
-	t0 = U8TO64_LE(m+offset); \
-	t1 = U8TO64_LE(m+offset+8); \
-	h0 += t0 & 0xfffffffffff; \
-	shr128_pair(t0, t1, t0, 44); \
-	h1 += t0 & 0xfffffffffff; \
-	h2 += (t1 >> 24) | ((uint64_t)1 << 40);
+	#define multiply_by_r_and_partial_reduce() \
+		d[0] = add128(add128(mul64x64_128(h0, r0), mul64x64_128(h1, s2)), mul64x64_128(h2, s1)); \
+		d[1] = add128(add128(mul64x64_128(h0, r1), mul64x64_128(h1, r0)), mul64x64_128(h2, s2)); \
+		d[2] = add128(add128(mul64x64_128(h0, r2), mul64x64_128(h1, r1)), mul64x64_128(h2, r0)); \
+		                           h0 = lo128(d[0]) & 0xfffffffffff; c = shr128(d[0], 44); \
+		d[1] = add128_64(d[1], c); h1 = lo128(d[1]) & 0xfffffffffff; c = shr128(d[1], 44); \
+		d[2] = add128_64(d[2], c); h2 = lo128(d[2]) & 0x3ffffffffff; c = shr128(d[2], 42); \
+		h0   += c * 5;  
 
-#if defined(HAVE_NATIVE_UINT128)
-	#define multiply_by_r() \
-		d[0] = ((uint128_t)h0 * r0) + ((uint128_t)h1 * s2) + ((uint128_t)h2 * s1); \
-		d[1] = ((uint128_t)h0 * r1) + ((uint128_t)h1 * r0) + ((uint128_t)h2 * s2); \
-		d[2] = ((uint128_t)h0 * r2) + ((uint128_t)h1 * r1) + ((uint128_t)h2 * r0);
-#else
-	#define multiply_by_r() \
-		mul64x64_128(d[0], h0, r0) mul64x64_128(mul, h1, s2) add128(d[0], mul) mul64x64_128(mul, h2, s1) add128(d[0], mul) \
-		mul64x64_128(d[1], h0, r1) mul64x64_128(mul, h1, r0) add128(d[1], mul) mul64x64_128(mul, h2, s2) add128(d[1], mul) \
-		mul64x64_128(d[2], h0, r2) mul64x64_128(mul, h1, r1) add128(d[2], mul) mul64x64_128(mul, h2, r0) add128(d[2], mul)
-#endif
-
-#define partial_reduce() \
-	                   h0 = lo128(d[0]) & 0xfffffffffff; shr128(c, d[0], 44); \
-	add128_64(d[1], c) h1 = lo128(d[1]) & 0xfffffffffff; shr128(c, d[1], 44); \
-	add128_64(d[2], c) h2 = lo128(d[2]) & 0x3ffffffffff; shr128(c, d[2], 42); \
-	h0   += c * 5;  
-
-#define multiply_and_reduce() \
-	multiply_by_r() \
-	partial_reduce()
-
-#define do_block(offset) \
-	add_block(offset) \
-	multiply_and_reduce()
-
+	#define do_block(offset) \
+		/* h += ((1 << 128) + m) */             \
+		t0 = U8TO64_LE(m+offset);               \
+		t1 = U8TO64_LE(m+offset+8);             \
+		h0 += t0 & 0xfffffffffff;               \
+		t0 = shr128_pair(t1, t0, 44);           \
+		h1 += t0 & 0xfffffffffff;               \
+		h2 += (t1 >> 24) | ((uint64_t)1 << 40); \
+		/* h = (h * r) % ((1 << 130) - 5) */    \
+		multiply_by_r_and_partial_reduce()
 
 /* 4 blocks */
 poly1305_donna_64bytes:
@@ -104,11 +86,11 @@ poly1305_donna_atmost15bytes:
 	t0 = U8TO64_LE(mp+0);
 	t1 = U8TO64_LE(mp+8);
 	h0 += t0 & 0xfffffffffff;
-	shr128_pair(t0, t1, t0, 44);
+	t0 = shr128_pair(t1, t0, 44);
 	h1 += t0 & 0xfffffffffff;
 	h2 += (t1 >> 24);
 
-	multiply_and_reduce()
+	multiply_by_r_and_partial_reduce()
 
 /* finish */
 poly1305_donna_finish:
@@ -130,16 +112,13 @@ poly1305_donna_finish:
 	t0 = U8TO64_LE(key+16);
 	t1 = U8TO64_LE(key+24);
 	h0 += (t0 & 0xfffffffffff)    ; c = (h0 >> 44); h0 &= 0xfffffffffff;
-	shr128_pair(t0, t1, t0, 44);
+	t0 = shr128_pair(t1, t0, 44);
 	h1 += (t0 & 0xfffffffffff) + c; c = (h1 >> 44); h1 &= 0xfffffffffff;
 	h2 += (t1 >> 24          ) + c;
 
 	U64TO8_LE(&out[ 0], ((h0      ) | (h1 << 44)));
 	U64TO8_LE(&out[ 8], ((h1 >> 20) | (h2 << 24)));
 
-	#undef add_block
-	#undef multiply_by_r
-	#undef partial_reduce
-	#undef multiply_and_reduce
+	#undef multiply_by_r_and_partial_reduce
 	#undef do_block
 }
