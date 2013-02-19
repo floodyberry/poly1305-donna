@@ -58,7 +58,7 @@ int main() {
 	static size_t lengths[] = {16, 64, 256, 1024, 8192, 0};
 	unsigned char buf[8192] = {255}, key[32] = {127}, mac[16];
 	size_t i, j;
-	uint64_t ticks;
+	uint64_t ticks, minticks;
 
 	/* warm up */
 	for (i = 0; i < 65536; i++) {
@@ -69,13 +69,13 @@ int main() {
 	for (i = 0; lengths[i]; i++) {
 		ticks = maxticks;
 		for (j = 0; j < 32768; j++) {
-			timeit(poly1305_auth(mac, buf, lengths[i], key), ticks);
+			timeit(poly1305_auth(mac, buf, lengths[i], key), minticks);
 			buf[j & 8191] += mac[i & 15];
 		}
 		if (lengths[i] <= 256)
-			printf("%u bytes, %.0f cycles\n", (uint32_t)lengths[i], (double)ticks);
+			printf("%u bytes, %.0f cycles\n", (uint32_t)lengths[i], (double)minticks);
 		else
-			printf("%u bytes, %.2f cycles/byte\n", (uint32_t)lengths[i], (double)ticks / lengths[i]);
+			printf("%u bytes, %.2f cycles/byte\n", (uint32_t)lengths[i], (double)minticks / lengths[i]);
 	}
 
 	return 0;
