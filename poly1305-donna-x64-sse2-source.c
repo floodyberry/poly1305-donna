@@ -15,17 +15,10 @@ static const uint32_t ALIGN(16) poly1305_x64_sse2_1shl128[4] = {(1 << 24), 0, (1
 
 void
 poly1305_auth(unsigned char out[16], const unsigned char *m, size_t inlen, const unsigned char key[32]) {
-	xmmi MMASK = _mm_load_si128((xmmi *)poly1305_x64_sse2_message_mask);
-	xmmi FIVE = _mm_load_si128((xmmi*)poly1305_x64_sse2_5);
-	xmmi HIBIT = _mm_load_si128((xmmi*)poly1305_x64_sse2_1shl128);
-	
-	struct {
-		union {
-			xmmi v;
-			uint64_t u[2];
-			uint32_t d;
-		} R20,R21,R22,R23,R24,S21,S22,S23,S24;
-	} P[13], *power, *initial_power, *rsquared;
+	const xmmi MMASK = _mm_load_si128((xmmi *)poly1305_x64_sse2_message_mask);
+	const xmmi FIVE = _mm_load_si128((xmmi*)poly1305_x64_sse2_5);
+	const xmmi HIBIT = _mm_load_si128((xmmi*)poly1305_x64_sse2_1shl128);
+
 	xmmi M0,M1,M2,M3,M4;
 	xmmi H0,H1,H2,H3,H4;
 	xmmi T0,T1,T2,T3,T4,T5,T6;
@@ -41,6 +34,15 @@ poly1305_auth(unsigned char out[16], const unsigned char *m, size_t inlen, const
 	uint64_t s21,s22;
 	size_t j, powers, blocksize, p;
 	uint128_t d[3];
+	
+	struct {
+		union {
+			xmmi v;
+			uint64_t u[2];
+			uint32_t d;
+		} R20,R21,R22,R23,R24,S21,S22,S23,S24;
+	} P[13], *power, *initial_power, *rsquared;
+
 	unsigned char mp[16];
 
 	/* clamp key */
@@ -64,8 +66,8 @@ poly1305_auth(unsigned char out[16], const unsigned char *m, size_t inlen, const
 	if (inlen < 32) goto poly1305_donna_atmost31bytes;
 
 	/* vectorize M0,M1 across H */
-	T5 = _mm_or_si128(_mm_loadl_epi64((xmmi *)(m + 0)), _mm_slli_si128(_mm_loadl_epi64((xmmi *)(m + 16)), 8));
-	T6 = _mm_or_si128(_mm_loadl_epi64((xmmi *)(m + 8)), _mm_slli_si128(_mm_loadl_epi64((xmmi *)(m + 24)), 8));
+	T5 = _mm_unpacklo_epi64(_mm_loadl_epi64((xmmi *)(m + 0)), _mm_loadl_epi64((xmmi *)(m + 16)));
+	T6 = _mm_unpacklo_epi64(_mm_loadl_epi64((xmmi *)(m + 8)), _mm_loadl_epi64((xmmi *)(m + 24)));
 	H0 = _mm_and_si128(MMASK, T5);
 	H1 = _mm_and_si128(MMASK, _mm_srli_epi64(T5, 26));
 	T5 = _mm_or_si128(_mm_srli_epi64(T5, 52), _mm_slli_epi64(T6, 12));
@@ -176,16 +178,28 @@ poly1305_auth(unsigned char out[16], const unsigned char *m, size_t inlen, const
 poly1305_donna_multirounds:
 	/* H *= [r^z,r^z] */
 	power = initial_power;
-	T0 = _mm_add_epi64(_mm_add_epi64(_mm_add_epi64(_mm_add_epi64(_mm_mul_epu32(H0, power->R20.v), _mm_mul_epu32(H1, power->S24.v)), _mm_mul_epu32(H2, power->S23.v)), _mm_mul_epu32(H3, power->S22.v)), _mm_mul_epu32(H4, power->S21.v));
-	T1 = _mm_add_epi64(_mm_add_epi64(_mm_add_epi64(_mm_add_epi64(_mm_mul_epu32(H0, power->R21.v), _mm_mul_epu32(H1, power->R20.v)), _mm_mul_epu32(H2, power->S24.v)), _mm_mul_epu32(H3, power->S23.v)), _mm_mul_epu32(H4, power->S22.v));
-	T2 = _mm_add_epi64(_mm_add_epi64(_mm_add_epi64(_mm_add_epi64(_mm_mul_epu32(H0, power->R22.v), _mm_mul_epu32(H1, power->R21.v)), _mm_mul_epu32(H2, power->R20.v)), _mm_mul_epu32(H3, power->S24.v)), _mm_mul_epu32(H4, power->S23.v));
-	T3 = _mm_add_epi64(_mm_add_epi64(_mm_add_epi64(_mm_add_epi64(_mm_mul_epu32(H0, power->R23.v), _mm_mul_epu32(H1, power->R22.v)), _mm_mul_epu32(H2, power->R21.v)), _mm_mul_epu32(H3, power->R20.v)), _mm_mul_epu32(H4, power->S24.v));
-	T4 = _mm_add_epi64(_mm_add_epi64(_mm_add_epi64(_mm_add_epi64(_mm_mul_epu32(H0, power->R24.v), _mm_mul_epu32(H1, power->R23.v)), _mm_mul_epu32(H2, power->R22.v)), _mm_mul_epu32(H3, power->R21.v)), _mm_mul_epu32(H4, power->R20.v));
+	T0 = _mm_mul_epu32(H0, power->R20.v);
+	T1 = _mm_mul_epu32(H0, power->R21.v);
+	T2 = _mm_mul_epu32(H0, power->R22.v);
+	T3 = _mm_mul_epu32(H0, power->R23.v);
+	T4 = _mm_mul_epu32(H0, power->R24.v);
+	T5 = _mm_mul_epu32(H1, power->S24.v); T6 = _mm_mul_epu32(H1, power->R20.v); T0 = _mm_add_epi64(T0, T5); T1 = _mm_add_epi64(T1, T6);
+	T5 = _mm_mul_epu32(H2, power->S23.v); T6 = _mm_mul_epu32(H2, power->S24.v); T0 = _mm_add_epi64(T0, T5); T1 = _mm_add_epi64(T1, T6);
+	T5 = _mm_mul_epu32(H3, power->S22.v); T6 = _mm_mul_epu32(H3, power->S23.v); T0 = _mm_add_epi64(T0, T5); T1 = _mm_add_epi64(T1, T6);
+	T5 = _mm_mul_epu32(H4, power->S21.v); T6 = _mm_mul_epu32(H4, power->S22.v); T0 = _mm_add_epi64(T0, T5); T1 = _mm_add_epi64(T1, T6);
+	T5 = _mm_mul_epu32(H1, power->R21.v); T6 = _mm_mul_epu32(H1, power->R22.v); T2 = _mm_add_epi64(T2, T5); T3 = _mm_add_epi64(T3, T6);
+	T5 = _mm_mul_epu32(H2, power->R20.v); T6 = _mm_mul_epu32(H2, power->R21.v); T2 = _mm_add_epi64(T2, T5); T3 = _mm_add_epi64(T3, T6);
+	T5 = _mm_mul_epu32(H3, power->S24.v); T6 = _mm_mul_epu32(H3, power->R20.v); T2 = _mm_add_epi64(T2, T5); T3 = _mm_add_epi64(T3, T6);
+	T5 = _mm_mul_epu32(H4, power->S23.v); T6 = _mm_mul_epu32(H4, power->S24.v); T2 = _mm_add_epi64(T2, T5); T3 = _mm_add_epi64(T3, T6);
+	T5 = _mm_mul_epu32(H1, power->R23.v);                                       T4 = _mm_add_epi64(T4, T5);
+	T5 = _mm_mul_epu32(H2, power->R22.v);                                       T4 = _mm_add_epi64(T4, T5);
+	T5 = _mm_mul_epu32(H3, power->R21.v);                                       T4 = _mm_add_epi64(T4, T5);
+	T5 = _mm_mul_epu32(H4, power->R20.v);                                       T4 = _mm_add_epi64(T4, T5);
 
 	for (p = 1; p < powers; p++) {
 		/* H += [Mx,My]*[r^(z-p*2),r^(z-p*2))] */
-		T5 = _mm_or_si128(_mm_loadl_epi64((xmmi *)(m + 0)), _mm_slli_si128(_mm_loadl_epi64((xmmi *)(m + 16)), 8));
-		T6 = _mm_or_si128(_mm_loadl_epi64((xmmi *)(m + 8)), _mm_slli_si128(_mm_loadl_epi64((xmmi *)(m + 24)), 8));
+		T5 = _mm_unpacklo_epi64(_mm_loadl_epi64((xmmi *)(m + 0)), _mm_loadl_epi64((xmmi *)(m + 16)));
+		T6 = _mm_unpacklo_epi64(_mm_loadl_epi64((xmmi *)(m + 8)), _mm_loadl_epi64((xmmi *)(m + 24)));
 		M0 = _mm_and_si128(MMASK, T5);
 		M1 = _mm_and_si128(MMASK, _mm_srli_epi64(T5, 26));
 		T5 = _mm_or_si128(_mm_srli_epi64(T5, 52), _mm_slli_epi64(T6, 12));
@@ -196,11 +210,22 @@ poly1305_donna_multirounds:
 		m += 32;
 
 		power++;
-		T0 = _mm_add_epi64(T0,_mm_add_epi64(_mm_add_epi64(_mm_add_epi64(_mm_add_epi64(_mm_mul_epu32(M0, power->R20.v), _mm_mul_epu32(M1, power->S24.v)), _mm_mul_epu32(M2, power->S23.v)), _mm_mul_epu32(M3, power->S22.v)), _mm_mul_epu32(M4, power->S21.v)));
-		T1 = _mm_add_epi64(T1,_mm_add_epi64(_mm_add_epi64(_mm_add_epi64(_mm_add_epi64(_mm_mul_epu32(M0, power->R21.v), _mm_mul_epu32(M1, power->R20.v)), _mm_mul_epu32(M2, power->S24.v)), _mm_mul_epu32(M3, power->S23.v)), _mm_mul_epu32(M4, power->S22.v)));
-		T2 = _mm_add_epi64(T2,_mm_add_epi64(_mm_add_epi64(_mm_add_epi64(_mm_add_epi64(_mm_mul_epu32(M0, power->R22.v), _mm_mul_epu32(M1, power->R21.v)), _mm_mul_epu32(M2, power->R20.v)), _mm_mul_epu32(M3, power->S24.v)), _mm_mul_epu32(M4, power->S23.v)));
-		T3 = _mm_add_epi64(T3,_mm_add_epi64(_mm_add_epi64(_mm_add_epi64(_mm_add_epi64(_mm_mul_epu32(M0, power->R23.v), _mm_mul_epu32(M1, power->R22.v)), _mm_mul_epu32(M2, power->R21.v)), _mm_mul_epu32(M3, power->R20.v)), _mm_mul_epu32(M4, power->S24.v)));
-		T4 = _mm_add_epi64(T4,_mm_add_epi64(_mm_add_epi64(_mm_add_epi64(_mm_add_epi64(_mm_mul_epu32(M0, power->R24.v), _mm_mul_epu32(M1, power->R23.v)), _mm_mul_epu32(M2, power->R22.v)), _mm_mul_epu32(M3, power->R21.v)), _mm_mul_epu32(M4, power->R20.v)));
+
+		T5 = _mm_mul_epu32(M0, power->R20.v); T6 = _mm_mul_epu32(M0, power->R21.v); T0 = _mm_add_epi64(T0, T5); T1 = _mm_add_epi64(T1, T6);
+		T5 = _mm_mul_epu32(M1, power->S24.v); T6 = _mm_mul_epu32(M1, power->R20.v); T0 = _mm_add_epi64(T0, T5); T1 = _mm_add_epi64(T1, T6);
+		T5 = _mm_mul_epu32(M2, power->S23.v); T6 = _mm_mul_epu32(M2, power->S24.v); T0 = _mm_add_epi64(T0, T5); T1 = _mm_add_epi64(T1, T6);
+		T5 = _mm_mul_epu32(M3, power->S22.v); T6 = _mm_mul_epu32(M3, power->S23.v); T0 = _mm_add_epi64(T0, T5); T1 = _mm_add_epi64(T1, T6);
+		T5 = _mm_mul_epu32(M4, power->S21.v); T6 = _mm_mul_epu32(M4, power->S22.v); T0 = _mm_add_epi64(T0, T5); T1 = _mm_add_epi64(T1, T6);
+		T5 = _mm_mul_epu32(M0, power->R22.v); T6 = _mm_mul_epu32(M0, power->R23.v); T2 = _mm_add_epi64(T2, T5); T3 = _mm_add_epi64(T3, T6);
+		T5 = _mm_mul_epu32(M1, power->R21.v); T6 = _mm_mul_epu32(M1, power->R22.v); T2 = _mm_add_epi64(T2, T5); T3 = _mm_add_epi64(T3, T6);
+		T5 = _mm_mul_epu32(M2, power->R20.v); T6 = _mm_mul_epu32(M2, power->R21.v); T2 = _mm_add_epi64(T2, T5); T3 = _mm_add_epi64(T3, T6);
+		T5 = _mm_mul_epu32(M3, power->S24.v); T6 = _mm_mul_epu32(M3, power->R20.v); T2 = _mm_add_epi64(T2, T5); T3 = _mm_add_epi64(T3, T6);
+		T5 = _mm_mul_epu32(M4, power->S23.v); T6 = _mm_mul_epu32(M4, power->S24.v); T2 = _mm_add_epi64(T2, T5); T3 = _mm_add_epi64(T3, T6);
+		T5 = _mm_mul_epu32(M0, power->R24.v);                                       T4 = _mm_add_epi64(T4, T5);
+		T5 = _mm_mul_epu32(M1, power->R23.v);                                       T4 = _mm_add_epi64(T4, T5);
+		T5 = _mm_mul_epu32(M2, power->R22.v);                                       T4 = _mm_add_epi64(T4, T5);
+		T5 = _mm_mul_epu32(M3, power->R21.v);                                       T4 = _mm_add_epi64(T4, T5);
+		T5 = _mm_mul_epu32(M4, power->R20.v);                                       T4 = _mm_add_epi64(T4, T5);
 	}
 
 	/* reduce */
@@ -251,11 +276,23 @@ poly1305_donna_combine:
 	power->S24.u[1] = power->R24.u[1] * 5;
 
 	/* H *= [r^2,r] */
-	T0 = _mm_add_epi64(_mm_add_epi64(_mm_add_epi64(_mm_add_epi64(_mm_mul_epu32(H0, power->R20.v), _mm_mul_epu32(H1, power->S24.v)), _mm_mul_epu32(H2, power->S23.v)), _mm_mul_epu32(H3, power->S22.v)), _mm_mul_epu32(H4, power->S21.v));
-	T1 = _mm_add_epi64(_mm_add_epi64(_mm_add_epi64(_mm_add_epi64(_mm_mul_epu32(H0, power->R21.v), _mm_mul_epu32(H1, power->R20.v)), _mm_mul_epu32(H2, power->S24.v)), _mm_mul_epu32(H3, power->S23.v)), _mm_mul_epu32(H4, power->S22.v));
-	T2 = _mm_add_epi64(_mm_add_epi64(_mm_add_epi64(_mm_add_epi64(_mm_mul_epu32(H0, power->R22.v), _mm_mul_epu32(H1, power->R21.v)), _mm_mul_epu32(H2, power->R20.v)), _mm_mul_epu32(H3, power->S24.v)), _mm_mul_epu32(H4, power->S23.v));
-	T3 = _mm_add_epi64(_mm_add_epi64(_mm_add_epi64(_mm_add_epi64(_mm_mul_epu32(H0, power->R23.v), _mm_mul_epu32(H1, power->R22.v)), _mm_mul_epu32(H2, power->R21.v)), _mm_mul_epu32(H3, power->R20.v)), _mm_mul_epu32(H4, power->S24.v));
-	T4 = _mm_add_epi64(_mm_add_epi64(_mm_add_epi64(_mm_add_epi64(_mm_mul_epu32(H0, power->R24.v), _mm_mul_epu32(H1, power->R23.v)), _mm_mul_epu32(H2, power->R22.v)), _mm_mul_epu32(H3, power->R21.v)), _mm_mul_epu32(H4, power->R20.v));
+	T0 = _mm_mul_epu32(H0, power->R20.v);
+	T1 = _mm_mul_epu32(H0, power->R21.v);
+	T2 = _mm_mul_epu32(H0, power->R22.v);
+	T3 = _mm_mul_epu32(H0, power->R23.v);
+	T4 = _mm_mul_epu32(H0, power->R24.v);
+	T5 = _mm_mul_epu32(H1, power->S24.v); T6 = _mm_mul_epu32(H1, power->R20.v); T0 = _mm_add_epi64(T0, T5); T1 = _mm_add_epi64(T1, T6);
+	T5 = _mm_mul_epu32(H2, power->S23.v); T6 = _mm_mul_epu32(H2, power->S24.v); T0 = _mm_add_epi64(T0, T5); T1 = _mm_add_epi64(T1, T6);
+	T5 = _mm_mul_epu32(H3, power->S22.v); T6 = _mm_mul_epu32(H3, power->S23.v); T0 = _mm_add_epi64(T0, T5); T1 = _mm_add_epi64(T1, T6);
+	T5 = _mm_mul_epu32(H4, power->S21.v); T6 = _mm_mul_epu32(H4, power->S22.v); T0 = _mm_add_epi64(T0, T5); T1 = _mm_add_epi64(T1, T6);
+	T5 = _mm_mul_epu32(H1, power->R21.v); T6 = _mm_mul_epu32(H1, power->R22.v); T2 = _mm_add_epi64(T2, T5); T3 = _mm_add_epi64(T3, T6);
+	T5 = _mm_mul_epu32(H2, power->R20.v); T6 = _mm_mul_epu32(H2, power->R21.v); T2 = _mm_add_epi64(T2, T5); T3 = _mm_add_epi64(T3, T6);
+	T5 = _mm_mul_epu32(H3, power->S24.v); T6 = _mm_mul_epu32(H3, power->R20.v); T2 = _mm_add_epi64(T2, T5); T3 = _mm_add_epi64(T3, T6);
+	T5 = _mm_mul_epu32(H4, power->S23.v); T6 = _mm_mul_epu32(H4, power->S24.v); T2 = _mm_add_epi64(T2, T5); T3 = _mm_add_epi64(T3, T6);
+	T5 = _mm_mul_epu32(H1, power->R23.v);                                       T4 = _mm_add_epi64(T4, T5);
+	T5 = _mm_mul_epu32(H2, power->R22.v);                                       T4 = _mm_add_epi64(T4, T5);
+	T5 = _mm_mul_epu32(H3, power->R21.v);                                       T4 = _mm_add_epi64(T4, T5);
+	T5 = _mm_mul_epu32(H4, power->R20.v);                                       T4 = _mm_add_epi64(T4, T5);
 
 	C1 = _mm_srli_epi64(T0, 26); C2 = _mm_srli_epi64(T3, 26); T0 = _mm_and_si128(T0, MMASK); T3 = _mm_and_si128(T3, MMASK); T1 = _mm_add_epi64(T1, C1); T4 = _mm_add_epi64(T4, C2); 
 	C1 = _mm_srli_epi64(T1, 26); C2 = _mm_srli_epi64(T4, 26); T1 = _mm_and_si128(T1, MMASK); T4 = _mm_and_si128(T4, MMASK); T2 = _mm_add_epi64(T2, C1); T0 = _mm_add_epi64(T0, _mm_mul_epu32(C2, FIVE)); 
