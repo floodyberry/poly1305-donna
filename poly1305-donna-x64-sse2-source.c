@@ -43,7 +43,7 @@ poly1305_auth(unsigned char out[16], const unsigned char *m, size_t inlen, const
 		} R20,R21,R22,R23,R24,S21,S22,S23,S24;
 	} P[13], *power, *initial_power, *rsquared;
 
-	unsigned char mp[16];
+	unsigned char ALIGN(16) mp[16];
 
 	/* clamp key */
 	t0 = U8TO64_LE(&key[0]);
@@ -263,7 +263,7 @@ poly1305_donna_multirounds:
 
 poly1305_donna_combine:
 	/* finalize, H *= [r^2,r] */
-	power = initial_power + powers - 1;
+	power = rsquared;
 	power->R20.u[1] = (uint32_t)( r0                    ) & 0x3ffffff;
 	power->R21.u[1] = (uint32_t)((r0 >> 26) | (r1 << 18)) & 0x3ffffff;
 	power->R22.u[1] = (uint32_t)((r1 >> 8)              ) & 0x3ffffff;
@@ -327,6 +327,8 @@ poly1305_donna_atmost31bytes:
 	t0 = shr128_pair(t1, t0, 44);
 	h1 += t0 & 0xfffffffffff;
 	h2 += (t1 >> 24) | ((uint64_t)1 << 40);
+	m += 16;
+	inlen -= 16;
 
 poly1305_donna_mul:
 	d[0] = add128(add128(mul64x64_128(h0, r0), mul64x64_128(h1, s2)), mul64x64_128(h2, s1));
@@ -337,18 +339,16 @@ poly1305_donna_mul:
 	d[2] = add128_64(d[2], c); h2 = lo128(d[2]) & 0x3ffffffffff; c = shr128(d[2], 42);
 	h0   += c * 5;  
 
-	m += 16;
-	inlen -= 16;
 	if (inlen >= 16) goto poly1305_donna_atmost31bytes;
 
 	/* final bytes */
 poly1305_donna_atmost15bytes:
 	if (!inlen) goto poly1305_donna_finish;
 
+	_mm_store_si128((xmmi *)mp, _mm_setzero_si128());
 	for (j = 0; j < inlen; j++) mp[j] = m[j];
 	mp[j++] = 1;
-	for (; j < 16; j++)	mp[j] = 0;
-	inlen = 16;
+	inlen = 0;
 
 	t0 = U8TO64_LE(mp+0);
 	t1 = U8TO64_LE(mp+8);

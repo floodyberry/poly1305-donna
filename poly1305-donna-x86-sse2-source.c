@@ -41,7 +41,7 @@ poly1305_auth(unsigned char out[16], const unsigned char *m, size_t inlen, const
 	uint64_t c;
 	uint64_t f0,f1,f2,f3;
 	uint32_t g0,g1,g2,g3,g4;
-	unsigned char mp[16];
+	unsigned char ALIGN(16) mp[16];
 
 	/* clamp key */
 	t0 = U8TO32_LE(key+0);
@@ -108,13 +108,13 @@ poly1305_auth(unsigned char out[16], const unsigned char *m, size_t inlen, const
 		t[3]  = mul32x32_64(r20,r23*2) + mul32x32_64(r21*2,r22) + mul32x32_64(r24  ,s24);
 		t[4]  = mul32x32_64(r22,r22  ) + mul32x32_64(r20*2,r24) + mul32x32_64(r23*2,r21);
 
-						r20 = (uint32_t)t[0] & 0x3ffffff; c = (uint32_t)(t[0] >> 26);
-		t[1] += c;      r21 = (uint32_t)t[1] & 0x3ffffff; c = (uint32_t)(t[1] >> 26);
-		t[2] += c;      r22 = (uint32_t)t[2] & 0x3ffffff; c = (uint32_t)(t[2] >> 26);
-		t[3] += c;      r23 = (uint32_t)t[3] & 0x3ffffff; c = (uint32_t)(t[3] >> 26);
-		t[4] += c;      r24 = (uint32_t)t[4] & 0x3ffffff; c = (uint32_t)(t[4] >> 26);
-		r20 += c * 5;   c = (r20 >> 26); r20 &= 0x3ffffff;
-		r21 += c;
+						r20 = (uint32_t)t[0] & 0x3ffffff; b = (uint32_t)(t[0] >> 26);
+		t[1] += b;      r21 = (uint32_t)t[1] & 0x3ffffff; b = (uint32_t)(t[1] >> 26);
+		t[2] += b;      r22 = (uint32_t)t[2] & 0x3ffffff; b = (uint32_t)(t[2] >> 26);
+		t[3] += b;      r23 = (uint32_t)t[3] & 0x3ffffff; b = (uint32_t)(t[3] >> 26);
+		t[4] += b;      r24 = (uint32_t)t[4] & 0x3ffffff; b = (uint32_t)(t[4] >> 26);
+		r20 += b * 5;   b = (r20 >> 26); r20 &= 0x3ffffff;
+		r21 += b;
 
 		power->R20.v = _mm_shuffle_epi32(_mm_cvtsi32_si128(r20), _MM_SHUFFLE(1,0,1,0));
 		power->R21.v = _mm_shuffle_epi32(_mm_cvtsi32_si128(r21), _MM_SHUFFLE(1,0,1,0));
@@ -145,13 +145,13 @@ poly1305_auth(unsigned char out[16], const unsigned char *m, size_t inlen, const
 		t[3]  = mul32x32_64(rsquared->R20.d,prev->R23.d) + mul32x32_64(rsquared->R21.d,prev->R22.d) + mul32x32_64(rsquared->R22.d,prev->R21.d) + mul32x32_64(rsquared->R23.d,prev->R20.d) + mul32x32_64(rsquared->R24.d,prev->S24.d);
 		t[4]  = mul32x32_64(rsquared->R20.d,prev->R24.d) + mul32x32_64(rsquared->R21.d,prev->R23.d) + mul32x32_64(rsquared->R22.d,prev->R22.d) + mul32x32_64(rsquared->R23.d,prev->R21.d) + mul32x32_64(rsquared->R24.d,prev->R20.d);
 
-						r20 = (uint32_t)t[0] & 0x3ffffff; c = (uint32_t)(t[0] >> 26);
-		t[1] += c;      r21 = (uint32_t)t[1] & 0x3ffffff; c = (uint32_t)(t[1] >> 26);
-		t[2] += c;      r22 = (uint32_t)t[2] & 0x3ffffff; c = (uint32_t)(t[2] >> 26);
-		t[3] += c;      r23 = (uint32_t)t[3] & 0x3ffffff; c = (uint32_t)(t[3] >> 26);
-		t[4] += c;      r24 = (uint32_t)t[4] & 0x3ffffff; c = (uint32_t)(t[4] >> 26);
-		r20 += c * 5;   c = (r20 >> 26); r20 &= 0x3ffffff;
-		r21 += c;
+						r20 = (uint32_t)t[0] & 0x3ffffff; b = (uint32_t)(t[0] >> 26);
+		t[1] += b;      r21 = (uint32_t)t[1] & 0x3ffffff; b = (uint32_t)(t[1] >> 26);
+		t[2] += b;      r22 = (uint32_t)t[2] & 0x3ffffff; b = (uint32_t)(t[2] >> 26);
+		t[3] += b;      r23 = (uint32_t)t[3] & 0x3ffffff; b = (uint32_t)(t[3] >> 26);
+		t[4] += b;      r24 = (uint32_t)t[4] & 0x3ffffff; b = (uint32_t)(t[4] >> 26);
+		r20 += b * 5;   b = (r20 >> 26); r20 &= 0x3ffffff;
+		r21 += b;
 	
 		power->R20.v = _mm_shuffle_epi32(_mm_cvtsi32_si128(r20), _MM_SHUFFLE(1,0,1,0));
 		power->R21.v = _mm_shuffle_epi32(_mm_cvtsi32_si128(r21), _MM_SHUFFLE(1,0,1,0));
@@ -256,7 +256,7 @@ poly1305_donna_multirounds:
 
 poly1305_donna_combine:
 	/* finalize, H *= [r^2,r] */
-	power = initial_power + powers - 1;
+	power = rsquared;
 	power->R20.u[1] = r0;
 	power->R21.u[1] = r1;
 	power->R22.u[1] = r2;
@@ -342,9 +342,9 @@ poly1305_donna_mul:
 poly1305_donna_atmost15bytes:
 	if (!inlen) goto poly1305_donna_finish;
 
+	_mm_store_si128((xmmi *)mp, _mm_setzero_si128());
 	for (i = 0; i < inlen; i++) mp[i] = m[i];
 	mp[i++] = 1;
-	for (; i < 16; i++)	mp[i] = 0;
 	inlen = 0;
 
 	t0 = U8TO32_LE(mp+0);
