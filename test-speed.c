@@ -67,7 +67,7 @@ int main() {
 	}
 
 	for (i = 0; lengths[i]; i++) {
-		ticks = maxticks;
+		minticks = maxticks;
 		for (j = 0; j < 32768; j++) {
 			timeit(poly1305_auth(mac, buf, lengths[i], key), minticks);
 			buf[j & 8191] += mac[i & 15];
