@@ -56,7 +56,8 @@ get_ticks(void) {
 
 int main() {
 	static size_t lengths[] = {16, 64, 256, 1024, 8192, 0};
-	unsigned char buf[8192] = {255}, key[32] = {127}, mac[16];
+	static unsigned char buf[8192] = {255};
+	unsigned char key[32] = {127}, mac[16];
 	size_t i, j;
 	uint64_t ticks, minticks;
 
