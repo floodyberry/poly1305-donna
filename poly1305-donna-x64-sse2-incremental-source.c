@@ -496,7 +496,6 @@ poly1305_finish(poly1305_state *state, unsigned char mac[16]) {
 	uint64_t t0,t1;
 	uint64_t g0,g1,g2,c,nc;
 	uint64_t r0,r1,r2,s1,s2;
-	uint64_t j;
 	poly1305_power *p;
 
 	if (st->started) {
