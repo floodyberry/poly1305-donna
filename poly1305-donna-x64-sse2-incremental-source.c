@@ -120,7 +120,7 @@ poly1305_first_block(poly1305_state_internal *st, const uint8_t *m) {
 	const xmmi HIBIT = _mm_load_si128((xmmi*)poly1305_x64_sse2_1shl128);
 	xmmi T5,T6;
 	poly1305_power *p;
-	uint128_t d[3];
+	uint128_t d[3],m0,m1;
 	uint64_t r0,r1,r2;
 	uint64_t r20,r21,r22,s22;
 	uint64_t pad0,pad1;
@@ -143,14 +143,13 @@ poly1305_first_block(poly1305_state_internal *st, const uint8_t *m) {
 	for (i = 0; i < 2; i++) {
 		s22 = r22 * (5 << 2);
 
-		d[0] = add128(mul64x64_128(r20, r20), mul64x64_128(r21 * 2, s22));
-		d[1] = add128(mul64x64_128(r22, s22), mul64x64_128(r20 * 2, r21));
-		d[2] = add128(mul64x64_128(r21, r21), mul64x64_128(r22 * 2, r20));
-
-		                           r20 = lo128(d[0]) & 0xfffffffffff; c = shr128(d[0], 44);
-		d[1] = add128_64(d[1], c); r21 = lo128(d[1]) & 0xfffffffffff; c = shr128(d[1], 44);
-		d[2] = add128_64(d[2], c); r22 = lo128(d[2]) & 0x3ffffffffff; c = shr128(d[2], 42);
-		r20 += c * 5; c = (r20 >> 44); r20 = r20 & 0xfffffffffff;
+		mul64x64_128(d[0], r20, r20); mul64x64_128(m0, r21 * 2, s22);  add128(d[0], m0);
+		mul64x64_128(d[1], r22, s22); mul64x64_128(m0, r20 * 2, r21);  add128(d[1], m0);
+		mul64x64_128(d[2], r21, r21); mul64x64_128(m0, r22 * 2, r20);  add128(d[2], m0);
+		                    r20 = lo128(d[0]) & 0xfffffffffff; c = shr128(d[0], 44);
+		add128_64(d[1], c); r21 = lo128(d[1]) & 0xfffffffffff; c = shr128(d[1], 44);
+		add128_64(d[2], c); r22 = lo128(d[2]) & 0x3ffffffffff; c = shr128(d[2], 42);
+		r20   += c * 5; c = (r20 >> 44); r20 = r20 & 0xfffffffffff;
 		r21 += c;
 
 		p->R20.v = _mm_shuffle_epi32(_mm_cvtsi32_si128((uint32_t)( r20                     ) & 0x3ffffff), _MM_SHUFFLE(1,0,1,0));
@@ -491,7 +490,7 @@ poly1305_finish(poly1305_state *state, unsigned char mac[16]) {
 	poly1305_state_internal *st = poly1305_aligned_state(state);
 	size_t leftover = st->leftover;
 	uint8_t *m = st->buffer;
-	uint128_t d[3];
+	uint128_t d[3],m0,m1;
 	uint64_t h0,h1,h2;
 	uint64_t t0,t1;
 	uint64_t g0,g1,g2,c,nc;
@@ -527,13 +526,13 @@ poly1305_donna_atleast16bytes:
 	h2 += (t1 >> 24) | ((uint64_t)1 << 40);
 
 poly1305_donna_mul:
-	d[0] = add128(add128(mul64x64_128(h0, r0), mul64x64_128(h1, s2)), mul64x64_128(h2, s1));
-	d[1] = add128(add128(mul64x64_128(h0, r1), mul64x64_128(h1, r0)), mul64x64_128(h2, s2));
-	d[2] = add128(add128(mul64x64_128(h0, r2), mul64x64_128(h1, r1)), mul64x64_128(h2, r0));
-	                           h0 = lo128(d[0]) & 0xfffffffffff; c = shr128(d[0], 44);
-	d[1] = add128_64(d[1], c); h1 = lo128(d[1]) & 0xfffffffffff; c = shr128(d[1], 44);
-	d[2] = add128_64(d[2], c); h2 = lo128(d[2]) & 0x3ffffffffff; c = shr128(d[2], 42);
-	h0   += c * 5; 
+	mul64x64_128(d[0], h0, r0); mul64x64_128(m0, h1, s2);  mul64x64_128(m1, h2, s1); add128(d[0], m0); add128(d[0], m1);
+	mul64x64_128(d[1], h0, r1); mul64x64_128(m0, h1, r0);  mul64x64_128(m1, h2, s2); add128(d[1], m0); add128(d[1], m1);
+	mul64x64_128(d[2], h0, r2); mul64x64_128(m0, h1, r1);  mul64x64_128(m1, h2, r0); add128(d[2], m0); add128(d[2], m1);
+	                    h0 = lo128(d[0]) & 0xfffffffffff; c = shr128(d[0], 44);
+	add128_64(d[1], c); h1 = lo128(d[1]) & 0xfffffffffff; c = shr128(d[1], 44);
+	add128_64(d[2], c); h2 = lo128(d[2]) & 0x3ffffffffff; c = shr128(d[2], 42);
+	h0   += c * 5;
 
 	m += 16;
 	leftover -= 16;

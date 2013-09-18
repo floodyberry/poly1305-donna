@@ -8,8 +8,8 @@ poly1305_auth(unsigned char out[16], const unsigned char *m, size_t inlen, const
 	uint64_t g0,g1,g2,c,nc;
 	uint64_t s1,s2;
 	size_t j;
-	uint128_t d[3];
-	unsigned char mp[16];
+	uint128_t d[3],m0,m1;
+	unsigned char mp[16] = {0};
 
 	/* clamp key */
 	t0 = U8TO64_LE(&key[0]);
@@ -34,13 +34,13 @@ poly1305_auth(unsigned char out[16], const unsigned char *m, size_t inlen, const
 
 	/* macros */
 	#define multiply_by_r_and_partial_reduce() \
-		d[0] = add128(add128(mul64x64_128(h0, r0), mul64x64_128(h1, s2)), mul64x64_128(h2, s1)); \
-		d[1] = add128(add128(mul64x64_128(h0, r1), mul64x64_128(h1, r0)), mul64x64_128(h2, s2)); \
-		d[2] = add128(add128(mul64x64_128(h0, r2), mul64x64_128(h1, r1)), mul64x64_128(h2, r0)); \
-		                           h0 = lo128(d[0]) & 0xfffffffffff; c = shr128(d[0], 44); \
-		d[1] = add128_64(d[1], c); h1 = lo128(d[1]) & 0xfffffffffff; c = shr128(d[1], 44); \
-		d[2] = add128_64(d[2], c); h2 = lo128(d[2]) & 0x3ffffffffff; c = shr128(d[2], 42); \
-		h0   += c * 5;  
+		mul64x64_128(d[0], h0, r0); mul64x64_128(m0, h1, s2);  mul64x64_128(m1, h2, s1); add128(d[0], m0); add128(d[0], m1); \
+		mul64x64_128(d[1], h0, r1); mul64x64_128(m0, h1, r0);  mul64x64_128(m1, h2, s2); add128(d[1], m0); add128(d[1], m1); \
+		mul64x64_128(d[2], h0, r2); mul64x64_128(m0, h1, r1);  mul64x64_128(m1, h2, r0); add128(d[2], m0); add128(d[2], m1); \
+		                    h0 = lo128(d[0]) & 0xfffffffffff; c = shr128(d[0], 44); \
+		add128_64(d[1], c); h1 = lo128(d[1]) & 0xfffffffffff; c = shr128(d[1], 44); \
+		add128_64(d[2], c); h2 = lo128(d[2]) & 0x3ffffffffff; c = shr128(d[2], 42); \
+		h0   += c * 5;
 
 	#define do_block(offset) \
 		/* h += ((1 << 128) + m) */             \
