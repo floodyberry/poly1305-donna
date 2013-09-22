@@ -11,6 +11,8 @@ static const uint32_t ALIGN(16) poly1305_x86_sse2_message_mask[4] = {(1 << 26) -
 static const uint32_t ALIGN(16) poly1305_x86_sse2_5[4] = {5, 0, 5, 0};
 static const uint32_t ALIGN(16) poly1305_x86_sse2_1shl128[4] = {(1 << 24), 0, (1 << 24), 0};
 
+#define POLY1305_POWERS 4
+
 void
 poly1305_auth(unsigned char out[16], const unsigned char *m, size_t inlen, const unsigned char key[32]) {
 	xmmi MMASK = _mm_load_si128((xmmi *)poly1305_x86_sse2_message_mask);
@@ -23,7 +25,7 @@ poly1305_auth(unsigned char out[16], const unsigned char *m, size_t inlen, const
 			uint64_t u[2];
 			uint32_t d;
 		} R20,R21,R22,R23,R24,S21,S22,S23,S24;
-	} P[13], *power, *prev, *initial_power, *rsquared;
+	} P[POLY1305_POWERS], *power, *prev, *initial_power, *rsquared;
 	xmmi M0,M1,M2,M3,M4;
 	xmmi H0,H1,H2,H3,H4;
 	xmmi T0,T1,T2,T3,T4,T5,T6;
@@ -41,7 +43,8 @@ poly1305_auth(unsigned char out[16], const unsigned char *m, size_t inlen, const
 	uint64_t c;
 	uint64_t f0,f1,f2,f3;
 	uint32_t g0,g1,g2,g3,g4;
-	unsigned char ALIGN(16) mp[16];
+	unsigned char ALIGN(16) mp[16] = {0};
+	size_t offset;
 
 	/* clamp key */
 	t0 = U8TO32_LE(key+0);
@@ -84,7 +87,7 @@ poly1305_auth(unsigned char out[16], const unsigned char *m, size_t inlen, const
 	m += 32;
 
 	powers = (inlen / 768) + 1;
-	powers = (powers > 13) ? 13 : powers;
+	powers = (powers > POLY1305_POWERS) ? POLY1305_POWERS : powers;
 	blocksize = powers * 32;
 	initial_power = &P[0];
 	power = &P[powers - 1];
@@ -342,9 +345,12 @@ poly1305_donna_mul:
 poly1305_donna_atmost15bytes:
 	if (!inlen) goto poly1305_donna_finish;
 
-	_mm_store_si128((xmmi *)mp, _mm_setzero_si128());
-	for (i = 0; i < inlen; i++) mp[i] = m[i];
-	mp[i++] = 1;
+	offset = 0;
+	if (inlen &  8) { *(uint64_t *)(mp         ) = *(uint64_t *)(m         ); offset  = 8; }
+	if (inlen &  4) { *(uint32_t *)(mp + offset) = *(uint32_t *)(m + offset); offset += 4; }
+	if (inlen &  2) { *(uint16_t *)(mp + offset) = *(uint16_t *)(m + offset); offset += 2; }
+	if (inlen &  1) { *( uint8_t *)(mp + offset) = *( uint8_t *)(m + offset); offset += 1; }
+	mp[offset] = 1;
 	inlen = 0;
 
 	t0 = U8TO32_LE(mp+0);

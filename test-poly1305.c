@@ -31,7 +31,7 @@ void make_dummy_data(unsigned char *out, uint32_t len, uint32_t seed) {
 	}
 }
 
-#define MAXLEN 1000
+#define MAXLEN 3080
 unsigned char out[16];
 unsigned char mod[16];
 unsigned char kr[32];
