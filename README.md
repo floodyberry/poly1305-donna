@@ -13,16 +13,16 @@ These are portable, and in the case of the 64 bit & SSE2 versions, fairly perfor
 <table>
 <thead><tr><th>Implemenation</th><th>16 bytes</th><th>256 bytes</th><th>8192 bytes</th></tr></thead>
 <tbody>
-<tr> <td>donna 64bit SSE2 asm             </td> <td>125</td> <td> 737</td> <td> 1.57</td> </tr>
-<tr> <td>donna 64bit SSE2-incremental asm </td> <td>212</td> <td> 800</td> <td> 1.67</td> </tr>
-<tr> <td>donna 32bit SSE2 asm             </td> <td>225</td> <td> 887</td> <td> 1.64</td> </tr>
-<tr> <td>donna 32bit SSE2-incremental asm </td> <td>262</td> <td> 925</td> <td> 1.82</td> </tr>
-<tr> <td>donna 64bit (gcc/icc)            </td> <td>150</td> <td> 888</td> <td> 3.07</td> </tr>
-<tr> <td>djb 64bit fp                     </td> <td>212</td> <td>1000</td> <td> 3.33</td> </tr>
-<tr> <td>djb 32bit fp                     </td> <td>212</td> <td>1012</td> <td> 3.35</td> </tr>
-<tr> <td>donna 32bit (icc)                </td> <td>238</td> <td>1850</td> <td> 6.79</td> </tr>
-<tr> <td>donna 32bit (clang)              </td> <td>287</td> <td>2150</td> <td> 7.74</td> </tr>
-<tr> <td>donna 32bit (gcc)                </td> <td>337</td> <td>3025</td> <td>11.24</td> </tr>
+<tr> <td>donna 64bit SSE2 asm              </td> <td>125</td> <td> 737</td> <td> 1.57</td> </tr>
+<tr> <td>donna 32bit SSE2 asm              </td> <td>250</td> <td> 825</td> <td> 1.57</td> </tr>
+<tr> <td>donna 64bit SSE2-incremental (gcc)</td> <td>212</td> <td> 812</td> <td> 1.66</td> </tr>
+<tr> <td>donna 32bit SSE2-incremental (gcc)</td> <td>437</td> <td>1175</td> <td> 1.98</td> </tr>
+<tr> <td>donna 64bit (gcc/icc)             </td> <td>150</td> <td> 888</td> <td> 3.07</td> </tr>
+<tr> <td>djb 64bit fp                      </td> <td>212</td> <td>1000</td> <td> 3.33</td> </tr>
+<tr> <td>djb 32bit fp                      </td> <td>212</td> <td>1012</td> <td> 3.35</td> </tr>
+<tr> <td>donna 32bit (icc)                 </td> <td>238</td> <td>1850</td> <td> 6.79</td> </tr>
+<tr> <td>donna 32bit (clang)               </td> <td>287</td> <td>2150</td> <td> 7.74</td> </tr>
+<tr> <td>donna 32bit (gcc)                 </td> <td>337</td> <td>3025</td> <td>11.24</td> </tr>
 </tbody>
 </table>
 
@@ -40,7 +40,9 @@ where "poly1305 version" is one of
 and link against poly1305.o
 
 The .c source for the SSE2 versions is for inspection only. Compilers are not guaranteed to generate
-decent code, so I included .s versions compiled with icc for the best performance.
+decent code, so I included .s versions compiled with icc (or gcc!) for the best performance.
+
+SSE2 assembler is PIC safe and works under MinGW/MinGW64.
 
 # USAGE
 
@@ -62,7 +64,7 @@ through "openssl md5" to create a fingerprint for the test which can be checked 
 working versions. djb's poly1305-x86.s and poly1305-amd64.s are included to validate against.
 
 test-driver.c (gcc only, requires openssl to be installed) automates testing of all available 
-versions. The fingerprints for 2^0 to 2^24 trials are included in test-driver.c and are checked 
+versions. The fingerprints for 2^0 to 2^19 trials are included in test-driver.c and are checked 
 against automatically.
 
 
