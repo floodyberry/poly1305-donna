@@ -24,19 +24,19 @@ builds build_list[] = {
 	{"x86asm", compiler " test-poly1305.c poly1305-x86.s -O3 -o test-poly1305" build_suffix},
 #endif
 #if defined(CPU_X86)
-	{"x86sse2", compiler " test-poly1305.c poly1305-donna-x86-sse2.s -O3 -o test-poly1305" build_suffix},
+	{"x86sse2", compiler " test-poly1305.c poly1305-donna-x86-sse2.S -O3 -o test-poly1305" build_suffix},
 #endif
 #if defined(CPU_X86)
-	{"x86sse2inc", compiler " test-poly1305.c poly1305-donna-x86-sse2-incremental.s -O3 -o test-poly1305" build_suffix},
+	{"x86sse2inc", compiler " test-poly1305.c poly1305-donna-x86-sse2-incremental-source.c -msse2 -O3 -o test-poly1305" build_suffix},
 #endif
 #if defined(CPU_X86_64)
 	{"x64asm", compiler " test-poly1305.c poly1305-amd64.s -O3 -o test-poly1305" build_suffix},
 #endif
 #if defined(CPU_X86_64)
-	{"x64sse2", compiler " test-poly1305.c poly1305-donna-x64-sse2.s -O3 -o test-poly1305" build_suffix},
+	{"x64sse2", compiler " test-poly1305.c poly1305-donna-x64-sse2.S -O3 -o test-poly1305" build_suffix},
 #endif
 #if defined(CPU_X86_64)
-	{"x64sse2inc", compiler " test-poly1305.c poly1305-donna-x64-sse2-incremental.s -O3 -o test-poly1305" build_suffix},
+	{"x64sse2inc", compiler " test-poly1305.c poly1305-donna-x64-sse2-incremental-source.c -O3 -o test-poly1305" build_suffix},
 #endif
 #if defined(CPU_64BITS)
 	{"64bit", compiler " test-poly1305.c poly1305-donna-c64-unrolled.c -O3 -o test-poly1305" build_suffix},
