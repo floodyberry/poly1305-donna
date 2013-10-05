@@ -101,7 +101,8 @@ poly1305_donna_finish:
 	h2 +=     b; b = h2 >> 26; h2 = h2 & 0x3ffffff;
 	h3 +=     b; b = h3 >> 26; h3 = h3 & 0x3ffffff;
 	h4 +=     b; b = h4 >> 26; h4 = h4 & 0x3ffffff;
-	h0 += b * 5;
+	h0 += b * 5; b = h0 >> 26; h0 = h0 & 0x3ffffff;
+    h1 +=     b;
 
 	g0 = h0 + 5; b = g0 >> 26; g0 &= 0x3ffffff;
 	g1 = h1 + b; b = g1 >> 26; g1 &= 0x3ffffff;

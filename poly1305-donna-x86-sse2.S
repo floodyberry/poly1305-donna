@@ -1448,8 +1448,12 @@ movl %edx, -952(%ebp)
 movl %eax, -1000(%ebp)
 lea (%ecx,%ecx,4), %ecx
 lea (%edi,%ecx), %edx
+movl %edx, %edi
+andl $67108863, %edx
+shrl $26, %edi
+addl %edi, %ebx
 movl %edx, -948(%ebp)
-lea 5(%ecx,%edi), %edx
+addl $5, %edx
 movl %edx, -996(%ebp)
 shrl $26, %edx
 addl %ebx, %edx

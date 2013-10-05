@@ -558,7 +558,8 @@ poly1305_donna_finish:
 	             c = (h0 >> 44); h0 &= 0xfffffffffff;
 	h1 += c;     c = (h1 >> 44); h1 &= 0xfffffffffff;
 	h2 += c;     c = (h2 >> 42); h2 &= 0x3ffffffffff;
-	h0 += c * 5;
+	h0 += c * 5; c = (h0 >> 44); h0 &= 0xfffffffffff;
+	h1 += c;
 
 	g0 = h0 + 5; c = (g0 >> 44); g0 &= 0xfffffffffff;
 	g1 = h1 + c; c = (g1 >> 44); g1 &= 0xfffffffffff;

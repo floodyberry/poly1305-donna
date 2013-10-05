@@ -225,6 +225,10 @@ leaq (%r8,%rcx,4), %rax
 movabsq $-4398046511104, %r8
 addq %r10, %r8
 leaq (%rax,%rcx), %rdi
+movq %rdi, %rax
+shrq $44, %rax
+andq %rdx, %rdi
+addq %rax, %rsi
 leaq 5(%rdi), %r9
 movq %r9, %r11
 andq %rdx, %r9
