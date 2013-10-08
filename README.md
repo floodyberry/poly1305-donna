@@ -33,14 +33,14 @@ These are portable, and in the case of the 64 bit & SSE2 versions, fairly perfor
 where "poly1305 version" is one of
 
  * -m64 poly1305-donna-c64-unrolled.c
- * -m64 poly1305-donna-x64-sse2.s
+ * -m64 poly1305-donna-x64-sse2.S
  * -m32 poly1305-donna-unrolled.c
- * -m32 poly1305-donna-x86-sse2.s
+ * -m32 poly1305-donna-x86-sse2.S
 
 and link against poly1305.o
 
 The .c source for the SSE2 versions is for inspection only. Compilers are not guaranteed to generate
-decent code, so I included .s versions compiled with icc (or gcc!) for the best performance.
+decent code, so I included .S versions compiled with icc (or gcc!) for the best performance.
 
 SSE2 assembler is PIC safe and works under MinGW/MinGW64.
 
