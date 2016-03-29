@@ -18,14 +18,14 @@ on what it can tell the compiler supports
 
 ## Selecting a specific version
 
-    gcc poly1305-donna.c -O3 -o poly1305.o -DPOLY1305_XXBITS
+    gcc poly1305-donna.c -O3 -o poly1305.o -DPOLY1305_XXBIT
 
-Where `-DPOLY1305_XXBITS` is one of
+Where `-DPOLY1305_XXBIT` is one of
 
- * `-DPOLY1305_8BITS`, 8->16 bit multiplies, 32 bit additions
- * `-DPOLY1305_16BITS`, 16->32 bit multiples, 32 bit additions
- * `-DPOLY1305_32BITS`, 32->64 bit multiplies, 64 bit additions
- * `-DPOLY1305_64BITS`, 64->128 bit multiplies, 128 bit additions
+ * `-DPOLY1305_8BIT`, 8->16 bit multiplies, 32 bit additions
+ * `-DPOLY1305_16BIT`, 16->32 bit multiples, 32 bit additions
+ * `-DPOLY1305_32BIT`, 32->64 bit multiplies, 64 bit additions
+ * `-DPOLY1305_64BIT`, 64->128 bit multiplies, 128 bit additions
 
 8 bit and 16 bit versions were written to keep the code size small, 32 bit and 64 bit versions are mildly optimized due
 to needing fewer multiplications. All 4 can be made faster at the expense of increased code size and complexity, which 
