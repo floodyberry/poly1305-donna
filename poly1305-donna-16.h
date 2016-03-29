@@ -161,10 +161,9 @@ poly1305_finish(poly1305_context *ctx, unsigned char mac[16]) {
 		c = g[i] >> 13;
 		g[i] &= 0x1fff;
 	}
-	g[9] -= (1 << 13);
 
 	/* select h if h < p, or h + -p if h >= p */
-	mask = (g[9] >> ((sizeof(unsigned short) * 8) - 1)) - 1;
+	mask = (c ^ 1) - 1;
 	for (i = 0; i < 10; i++)
 		g[i] &= mask;
 	mask = ~mask;
