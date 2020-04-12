@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "poly1305-donna.h"
+#include "poly1305-rfc-test-vectors.h"
 
 int
 main(void) {
@@ -25,6 +26,10 @@ main(void) {
 		printf("%02x", mac[i]);
 	printf(" (%s)\n", poly1305_verify(expected, mac) ? "correct" : "incorrect");
 
+	for (i = 0; i<sizeof(rfc_test_vectors)/sizeof(rfc_test_vectors[0]); i++) {
+		poly1305_auth(mac, rfc_test_vectors[i].msg, rfc_test_vectors[i].msg_length, rfc_test_vectors[i].key);
+		printf("test vector %02d (%s)\n", (int)i+1, poly1305_verify(rfc_test_vectors[i].mac, mac) ? "passed" : "failed");
+	}
+
 	return 0;
 }
-
