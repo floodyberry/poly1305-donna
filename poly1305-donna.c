@@ -74,8 +74,7 @@ poly1305_verify(const unsigned char mac1[16], const unsigned char mac2[16]) {
 	unsigned int dif = 0;
 	for (i = 0; i < 16; i++)
 		dif |= (mac1[i] ^ mac2[i]);
-	dif = (dif - 1) >> ((sizeof(unsigned int) * 8) - 1);
-	return (dif & 1);
+	return (1 & ((dif - 1) >> 8)) - 1; // anything but 0 becomes 1
 }
 
 
